@@ -4,9 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "frog dev",
-    "serve": "tsx src/index.tsx",
-    "build": "frog vercel-build",
-    "deploy": "vercel"
+    "serve": "tsx src/index.tsx"
   },
   "dependencies": {
     "@hono/node-server": "^1",
@@ -17,7 +15,6 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
-    "tsx": "^3.12.2",
-    "vercel": "^34.0.0"
+    "tsx": "^3.12.2"
   }
 }

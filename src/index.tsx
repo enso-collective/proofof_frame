@@ -6,10 +6,10 @@ import axios from "axios";
 import { FarcasterResponse } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
-import { handle } from "frog/vercel";
 dotenv.config();
 
 export const app = new Frog({});
+const port = process.env.PORT || 5000;
 
 app.use("/*", serveStatic({ root: "./public" }));
 
@@ -53,20 +53,19 @@ app.frame("/", async (c) => {
       }
     }
   } catch (error: any) {
-    return c.res(errorScreen(error.message));
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
   }
 });
 
-// devtools(app, { serveStatic });
+devtools(app, { serveStatic });
 
-// serve({
-//   fetch: app.fetch,
-//   port: Number(port),
-// });
+serve({
+  fetch: app.fetch,
+  port: Number(port),
+});
 
-// @ts-ignore
-if (import.meta.env?.MODE === "development") devtools(app, { serveStatic });
-else devtools(app, { assetsPath: "/.frog" });
-
-export const GET = handle(app);
-export const POST = handle(app);
+console.log(`Server listening on ${port}`);
