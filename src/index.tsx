@@ -6,6 +6,7 @@ import axios from "axios";
 import { FarcasterResponse } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
+import { handle } from "frog/vercel";
 dotenv.config();
 
 export const app = new Frog({});
@@ -25,7 +26,7 @@ app.frame("/", async (c) => {
         const {
           data: { conversation },
         } = await axios.get<FarcasterResponse>(url, { headers });
-        const [firstSortedAndFilteredReply] = conversation.cast.direct_replies
+        const [firstSortedAndFilteredReply] = conversation?.cast?.direct_replies
           .map((t) => ({
             fid: t.author.fid,
             text: t.text,
@@ -56,18 +57,16 @@ app.frame("/", async (c) => {
   }
 });
 
-const port = process.env.PORT || 3000;
+// devtools(app, { serveStatic });
 
-devtools(app, { serveStatic });
+// serve({
+//   fetch: app.fetch,
+//   port: Number(port),
+// });
 
-serve({
-  fetch: app.fetch,
-  port: Number(port),
-});
+// @ts-ignore
+if (import.meta.env?.MODE === "development") devtools(app, { serveStatic });
+else devtools(app, { assetsPath: "/.frog" });
 
-process.on("uncaughtException", () => {
-  process.exit(1);
-});
-process.on("unhandledRejection", () => {
-  process.exit(1);
-});
+export const GET = handle(app);
+export const POST = handle(app);
