@@ -58,9 +58,7 @@ app.frame("/", async (c) => {
         }
         const buttons: any[] = [];
         if (willRedirect) {
-          buttons.push(
-            <Button.Redirect location={willRedirect}>Visit ↗</Button.Redirect>
-          );
+          buttons.push(<Button.Link href={willRedirect}>Visit ↗</Button.Link>);
         }
         buttons.push(<Button.Reset>Reset</Button.Reset>);
         return c.res(infoScreen(returnedText, buttons));
