@@ -1,0 +1,27 @@
+FROM node:18
+
+
+RUN apt-get update && apt-get upgrade -y
+
+
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+
+RUN echo package.json 
+
+
+
+EXPOSE 5000
+
+
+CMD ["npm","run","dev"]
+
+# CMD ["npm","start"]
