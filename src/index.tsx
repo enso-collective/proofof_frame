@@ -6,6 +6,8 @@ import axios from "axios";
 import { FarcasterResponse } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
+import { IMAGE_LINKS_REGEX } from "./utils/misc";
+import { eas_mint } from "./utils/eas";
 dotenv.config();
 
 export const app = new Frog({});
@@ -28,20 +30,31 @@ app.frame("/", async (c) => {
         } = await axios.get<FarcasterResponse>(url, { headers });
         const [firstSortedAndFilteredReply] = conversation?.cast?.direct_replies
           .map((t) => ({
-            fid: t.author.fid,
-            text: t.text,
-            timestamp: new Date(t.timestamp),
+            ...t,
+            date: new Date(t.timestamp),
           }))
-          .sort((a: any, b: any) => b?.timestamp - a?.timestamp)
-          .filter((a) => Number(a.fid) === Number(frameData?.fid));
+          .sort((a: any, b: any) => b?.date - a?.date)
+          .filter((a) => Number(a.author.fid) === Number(frameData?.fid));
 
         if (!firstSortedAndFilteredReply?.text) {
           throw new Error("Please reply to this cast first");
         }
+        let returnedText = firstSortedAndFilteredReply.text;
+        const embedWithImage = firstSortedAndFilteredReply.embeds.find((t) =>
+          new RegExp(IMAGE_LINKS_REGEX).test(t.url)
+        );
+        if (embedWithImage) {
+          const tx = await eas_mint(
+            frameData?.castId?.hash as string,
+            String(frameData?.fid),
+            returnedText,
+            embedWithImage.url,
+            "Testing"
+          );
+          returnedText += `\n \n https://www.onceupon.gg/${tx.tx.hash}`;
+        }
         return c.res(
-          infoScreen(firstSortedAndFilteredReply.text, [
-            <Button.Reset>Reset</Button.Reset>,
-          ])
+          infoScreen(returnedText, [<Button.Reset>Reset</Button.Reset>])
         );
       }
       default: {
@@ -53,6 +66,7 @@ app.frame("/", async (c) => {
       }
     }
   } catch (error: any) {
+    console.log(error);
     return c.res(
       errorScreen(
         error.message.includes("reply") ? error.message : "Something went wrong"
