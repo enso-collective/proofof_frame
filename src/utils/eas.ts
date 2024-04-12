@@ -1,3 +1,4 @@
+// @ts-ignore
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { ethers } from "ethers";
 

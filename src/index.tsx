@@ -51,6 +51,7 @@ app.frame("/", async (c) => {
             embedWithImage.url,
             "Testing"
           );
+
           returnedText += `\n \n https://www.onceupon.gg/${tx.tx.hash}`;
         }
         return c.res(
