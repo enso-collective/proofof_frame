@@ -43,6 +43,7 @@ app.frame("/", async (c) => {
         const embedWithImage = firstSortedAndFilteredReply.embeds.find((t) =>
           new RegExp(IMAGE_LINKS_REGEX).test(t.url)
         );
+        let willRedirect: string | boolean = false;
         if (embedWithImage) {
           const tx = await eas_mint(
             frameData?.castId?.hash as string,
@@ -53,10 +54,16 @@ app.frame("/", async (c) => {
           );
 
           returnedText += `\n \n https://www.onceupon.gg/${tx.tx.hash}`;
+          willRedirect = `https://www.onceupon.gg/${tx.tx.hash}`;
         }
-        return c.res(
-          infoScreen(returnedText, [<Button.Reset>Reset</Button.Reset>])
-        );
+        const buttons: any[] = [];
+        if (willRedirect) {
+          buttons.push(
+            <Button.Redirect location={willRedirect}>Visit ↗</Button.Redirect>
+          );
+        }
+        buttons.push(<Button.Reset>Reset</Button.Reset>);
+        return c.res(infoScreen(returnedText, buttons));
       }
       default: {
         return c.res(

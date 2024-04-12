@@ -53,11 +53,11 @@ export const infoScreen = (text: string, buttons: any[]) => ({
       <div
         style={{
           color: "white",
-          fontSize: 40,
+          fontSize: 25,
           fontStyle: "normal",
           letterSpacing: "-0.025em",
           lineHeight: 1.4,
-          marginTop: 30,
+          marginTop: 20,
           padding: "0 120px",
           whiteSpace: "pre-wrap",
         }}
