@@ -7,7 +7,7 @@ import { FarcasterResponse } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
 import { IMAGE_LINKS_REGEX } from "./utils/misc";
-import { eas_mint } from "./utils/eas";
+import { mintProcess } from "./mint";
 dotenv.config();
 
 export const app = new Frog({});
@@ -43,25 +43,28 @@ app.frame("/", async (c) => {
         const embedWithImage = firstSortedAndFilteredReply.embeds.find((t) =>
           new RegExp(IMAGE_LINKS_REGEX).test(t.url)
         );
-        let willRedirect: string | boolean = false;
+        let buttons: any[] = [<Button.Reset>Reset</Button.Reset>];
+        let returnObj: any = infoScreen(returnedText, buttons);
         if (embedWithImage) {
-          const tx = await eas_mint(
-            frameData?.castId?.hash as string,
-            String(frameData?.fid),
-            returnedText,
-            embedWithImage.url,
-            "Testing"
-          );
+          const emitObject = {
+            castHash: frameData?.castId?.hash as string,
+            userFid: String(frameData?.fid),
+            text: returnedText,
+            image: embedWithImage.url,
+            label: "Testing",
+            jobId: Math.random().toString().slice(-15) + Date.now(),
+          };
+          mintProcess.emit(JSON.stringify(emitObject));
 
-          returnedText += `\n \n https://www.onceupon.gg/${tx.tx.hash}`;
-          willRedirect = `https://www.onceupon.gg/${tx.tx.hash}`;
+          returnedText += `\n\n\n Loading attestation...`;
+          buttons = [<Button value="REFRESH">Check status</Button>];
+          returnObj = {
+            ...infoScreen(returnedText, buttons),
+            action: `/jobs/${emitObject.jobId}`,
+          };
         }
-        const buttons: any[] = [];
-        if (willRedirect) {
-          buttons.push(<Button.Link href={willRedirect}>Visit</Button.Link>);
-        }
-        buttons.push(<Button.Reset>Reset</Button.Reset>);
-        return c.res(infoScreen(returnedText, buttons));
+
+        return c.res(returnObj);
       }
       default: {
         return c.res(
@@ -79,6 +82,10 @@ app.frame("/", async (c) => {
       )
     );
   }
+});
+app.frame("/jobs/:jobId", async (c) => {
+  console.log(c.req.param);
+  return c.res(errorScreen("Hello"));
 });
 
 devtools(app, { serveStatic });
