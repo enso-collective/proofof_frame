@@ -54,7 +54,7 @@ app.frame("/", async (c) => {
             label: "Testing",
             jobId: Math.random().toString().slice(-15) + Date.now(),
           };
-          mintProcess.emit(JSON.stringify(emitObject));
+          mintProcess.emit("START_MINTING", JSON.stringify(emitObject));
 
           returnedText += `\n\n\n Loading attestation...`;
           buttons = [<Button value="REFRESH">Check status</Button>];
