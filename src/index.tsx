@@ -84,7 +84,8 @@ app.frame("/", async (c) => {
   }
 });
 app.frame("/jobs/:jobId", async (c) => {
-  console.log(c.req.param);
+  const { jobId } = c.req.param();
+  console.log({ jobId });
   return c.res(errorScreen("Hello"));
 });
 

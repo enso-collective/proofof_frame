@@ -19,6 +19,7 @@ export const mintProcess = new StartMintProcess();
 
 mintProcess.on("START_MINTING", async (data) => {
   try {
+    console.log(data, "COMING FROM HERE");
     const mintPayload = JSON.parse(data) as MintPayload;
     console.log(mintPayload);
   } catch (error) {
