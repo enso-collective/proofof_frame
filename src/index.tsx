@@ -8,6 +8,7 @@ import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
 import { IMAGE_LINKS_REGEX } from "./utils/misc";
 import { mintProcess } from "./mint";
+import { db } from "./utils/db";
 dotenv.config();
 
 export const app = new Frog({});
@@ -84,9 +85,44 @@ app.frame("/", async (c) => {
   }
 });
 app.frame("/jobs/:jobId", async (c) => {
-  const { jobId } = c.req.param();
-  console.log({ jobId });
-  return c.res(errorScreen("Hello"));
+  try {
+    const { jobId } = c.req.param();
+    let { data: attestation } = await db
+      .from("attestations")
+      .select()
+      .eq("job_id", jobId)
+      .limit(1)
+      .single();
+    if (attestation && attestation.is_valid && attestation.tx) {
+      return c.res(
+        infoScreen(attestation.tx, [
+          <Button.Reset>Reset</Button.Reset>,
+          <Button.Link href={attestation.tx}>View</Button.Link>,
+        ])
+      );
+    }
+    if (attestation && attestation.message) {
+      return c.res(
+        infoScreen(attestation.message, [<Button.Reset>Reset</Button.Reset>])
+      );
+    }
+
+    return {
+      ...c.res(
+        infoScreen("\n\n\nStill loading...", [
+          <Button value="REFRESH">Check status</Button>,
+        ])
+      ),
+      action: `/jobs/${jobId}`,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
+  }
 });
 
 devtools(app, { serveStatic });

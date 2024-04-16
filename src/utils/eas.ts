@@ -2,13 +2,21 @@
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { ethers } from "ethers";
 
-export async function eas_mint(
-  cast_hash: string,
-  fid: string,
-  cast_content: string,
-  cast_image_link: string,
-  assoc_brand: string
-) {
+export async function eas_mint({
+  cast_hash,
+  fid,
+  cast_content,
+  cast_image_link,
+  assoc_brand,
+  address,
+}: {
+  cast_hash: string;
+  fid: string;
+  cast_content: string;
+  cast_image_link: string;
+  assoc_brand: string;
+  address: string;
+}) {
   const provider = ethers.getDefaultProvider("base-sepolia", {
     alchemy: process.env["ALCHEMY_KEY"],
   });
@@ -36,7 +44,7 @@ export async function eas_mint(
   const tx = await eas.attest({
     schema: SchemaUID,
     data: {
-      recipient: process.env.WALLET_ADDRESS as string,
+      recipient: address,
       revocable: true,
       data: encodedData,
     },
