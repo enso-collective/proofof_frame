@@ -49,8 +49,8 @@ class StartMintProcess extends EventEmitter {
 export const mintProcess = new StartMintProcess();
 
 mintProcess.on("START_MINTING", async (data) => {
+  const mintPayload = JSON.parse(data) as MintPayload;
   try {
-    const mintPayload = JSON.parse(data) as MintPayload;
     const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${mintPayload.userFid}`;
     const headers = {
       accept: "application/json",
@@ -101,7 +101,19 @@ mintProcess.on("START_MINTING", async (data) => {
         tx: responsePayload.url,
       });
     }
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.data?.message) {
+      try {
+        await db.from("attestations").insert({
+          job_id: mintPayload.jobId,
+          is_valid: false,
+          cast: mintPayload.castHash,
+          message: error.data.message,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
     console.log(error);
   }
 });
