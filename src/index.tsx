@@ -42,7 +42,8 @@ app.frame("/", async (c) => {
         }
         let returnedText = firstSortedAndFilteredReply.text;
         const [embedWithImage] = firstSortedAndFilteredReply.embeds.filter(
-          (t) => new RegExp(IMAGE_LINKS_REGEX).test(t.url)
+          // (t) => new RegExp(IMAGE_LINKS_REGEX).test(t.url)
+          (t) => t.url
         );
         let buttons: any[] = [<Button.Reset>Reset</Button.Reset>];
         let returnObj: any = infoScreen(returnedText, buttons);
