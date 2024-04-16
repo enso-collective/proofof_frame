@@ -41,8 +41,8 @@ app.frame("/", async (c) => {
           throw new Error("Please reply to this cast first");
         }
         let returnedText = firstSortedAndFilteredReply.text;
-        const embedWithImage = firstSortedAndFilteredReply.embeds.find((t) =>
-          new RegExp(IMAGE_LINKS_REGEX).test(t.url)
+        const [embedWithImage] = firstSortedAndFilteredReply.embeds.filter(
+          (t) => new RegExp(IMAGE_LINKS_REGEX).test(t.url)
         );
         let buttons: any[] = [<Button.Reset>Reset</Button.Reset>];
         let returnObj: any = infoScreen(returnedText, buttons);
