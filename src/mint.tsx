@@ -102,13 +102,13 @@ mintProcess.on("START_MINTING", async (data) => {
       });
     }
   } catch (error: any) {
-    if (error?.data?.message) {
+    if (error?.response?.data?.message) {
       try {
         await db.from("attestations").insert({
           job_id: mintPayload.jobId,
           is_valid: false,
           cast: mintPayload.castHash,
-          message: error.data.message,
+          message: error.response.data.message,
         });
       } catch (error) {
         console.log(error);
