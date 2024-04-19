@@ -58,11 +58,17 @@ app.frame("/", async (c) => {
           };
           // mintProcess.emit("START_MINTING", JSON.stringify(emitObject));
 
-          returnedText += `\n\n\n Loading attestation...`;
-          buttons = [<Button value="REFRESH">Check status</Button>];
+          // returnedText += `\n\n\n Loading attestation...`;
+          // buttons = [<Button value="REFRESH">Check status</Button>];
+          returnedText += `Proceed to pay`;
+          buttons = [
+            <Button.Transaction target={`/transactions/${emitObject.jobId}`}>
+              Pay now
+            </Button.Transaction>,
+          ];
           returnObj = {
             ...infoScreen(returnedText, buttons),
-            action: `/transactions/${emitObject.jobId}`,
+            // action: `/jobs/${emitObject.jobId}`,
           };
         }
 
