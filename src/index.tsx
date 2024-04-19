@@ -96,8 +96,8 @@ app.transaction("/transactions/:transactionId", (c) => {
   console.log({ transactionId });
   return c.send({
     // @ts-ignore
-    chainId: "eip155:666666666",
-    // chainId: "eip155:84532",
+    // chainId: "eip155:666666666",
+    chainId: "eip155:84532",
     to: "0xd9f2D8DA9c8Ff285080FE0Df6285F3551bf1397b",
     value: parseEther("0.0001"),
   });
