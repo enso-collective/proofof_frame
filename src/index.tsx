@@ -60,7 +60,7 @@ app.frame("/", async (c) => {
 
           // returnedText += `\n\n\n Loading attestation...`;
           // buttons = [<Button value="REFRESH">Check status</Button>];
-          returnedText += `Proceed to pay`;
+          returnedText = `Proceed to pay`;
           buttons = [
             <Button.Transaction target={`/transactions/${emitObject.jobId}`}>
               Pay now
@@ -92,9 +92,11 @@ app.frame("/", async (c) => {
   }
 });
 app.transaction("/transactions/:transactionId", (c) => {
+  const { transactionId } = c.req.param();
+  console.log({ transactionId });
   return c.send({
     // @ts-ignore
-    chainId: "eip155:666666666",
+    chainId: "eip155:84532",
     to: "0xd9f2D8DA9c8Ff285080FE0Df6285F3551bf1397b",
     value: parseEther("0.0001"),
   });
