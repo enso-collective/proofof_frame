@@ -1,6 +1,6 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Button, Frog } from "frog";
+import { Button, Frog, parseEther } from "frog";
 import { devtools } from "frog/dev";
 import axios from "axios";
 import { FarcasterResponse } from "./interface";
@@ -56,13 +56,13 @@ app.frame("/", async (c) => {
             label: "Testing",
             jobId: Math.random().toString().slice(-15) + Date.now(),
           };
-          mintProcess.emit("START_MINTING", JSON.stringify(emitObject));
+          // mintProcess.emit("START_MINTING", JSON.stringify(emitObject));
 
           returnedText += `\n\n\n Loading attestation...`;
           buttons = [<Button value="REFRESH">Check status</Button>];
           returnObj = {
             ...infoScreen(returnedText, buttons),
-            action: `/jobs/${emitObject.jobId}`,
+            action: `/transactions/${emitObject.jobId}`,
           };
         }
 
@@ -84,6 +84,14 @@ app.frame("/", async (c) => {
       )
     );
   }
+});
+app.transaction("/transactions/:transactionId", (c) => {
+  return c.send({
+    // @ts-ignore
+    chainId: "eip155:666666666",
+    to: "0xd9f2D8DA9c8Ff285080FE0Df6285F3551bf1397b",
+    value: parseEther("0.0001"),
+  });
 });
 app.frame("/jobs/:jobId", async (c) => {
   try {
