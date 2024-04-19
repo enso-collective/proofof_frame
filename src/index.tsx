@@ -49,7 +49,7 @@ app.frame("/", async (c) => {
         let returnObj: any = infoScreen(returnedText, buttons);
         if (embedWithImage) {
           const emitObject = {
-            castHash: frameData?.castId?.hash as string,
+            castHash: firstSortedAndFilteredReply.hash,
             userFid: String(frameData?.fid),
             text: returnedText,
             image: embedWithImage.url,
