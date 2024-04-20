@@ -90,7 +90,7 @@ app.frame("/", async (c) => {
 app.frame("/payments/:validationId", async (c) => {
   try {
     if (c.transactionId) {
-      const transaction = await provider.getTransaction(`0x${c.transactionId}`);
+      const transaction = await provider.getTransaction(c.transactionId);
       console.log(transaction);
       console.log(c.transactionId);
     }
