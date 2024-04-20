@@ -99,9 +99,7 @@ app.frame("/payments/:validationId", async (c) => {
     console.log(tx);
 
     if (true || !tx?.receipt?.status) {
-      const buttons = [
-        <Button value={`c.transactionId`}>Check progress</Button>,
-      ];
+      const buttons = [<Button value={c.transactionId}>Check progress</Button>];
       const returnObj = {
         ...infoScreen("Completing transaction...", buttons),
         action: `/payments/${c.transactionId}`,
