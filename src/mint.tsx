@@ -118,6 +118,21 @@ mintProcess.on("START_MINTING", async (data) => {
   }
 });
 
+mintProcess.on("START_VALIDATING", async (data) => {
+  const mintPayload = JSON.parse(data) as MintPayload;
+  try {
+    await db.from("validations").insert({
+      job_id: mintPayload.jobId,
+      cast: mintPayload.castHash,
+      text: mintPayload.text,
+      image: mintPayload.image,
+      fid: mintPayload.userFid,
+    });
+  } catch (error: any) {
+    console.log(error);
+  }
+});
+
 // const tx = await eas_mint(
 //   frameData?.castId?.hash as string,
 //   String(frameData?.fid),

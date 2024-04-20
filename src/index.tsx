@@ -57,18 +57,13 @@ app.frame("/", async (c) => {
             jobId: Math.random().toString().slice(-15) + Date.now(),
           };
           // mintProcess.emit("START_MINTING", JSON.stringify(emitObject));
+          mintProcess.emit("START_VALIDATING", JSON.stringify(emitObject));
 
-          // returnedText += `\n\n\n Loading attestation...`;
-          // buttons = [<Button value="REFRESH">Check status</Button>];
-          returnedText = `Proceed to pay`;
-          buttons = [
-            <Button.Transaction target={`/transactions/${emitObject.jobId}`}>
-              Pay now
-            </Button.Transaction>,
-          ];
+          returnedText = `Validating cast...`;
+          buttons = [<Button value="CAST_PROGRESS">Check progress</Button>];
           returnObj = {
             ...infoScreen(returnedText, buttons),
-            action: `/jobs/${emitObject.jobId}`,
+            action: `/validations/${emitObject.jobId}`,
           };
         }
 
@@ -91,11 +86,68 @@ app.frame("/", async (c) => {
     );
   }
 });
+app.frame("/payments/:validationId", async (c) => {
+  try {
+    const { validationId } = c.req.param();
+    console.log({ validationId });
+    return {
+      ...c.res(
+        infoScreen("Success, time to start minting EAS", [
+          <Button value="REFRESH">Check progress</Button>,
+        ])
+      ),
+      action: `/payments/${validationId}`,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
+  }
+});
+app.frame("/validations/:validationId", async (c) => {
+  try {
+    const { validationId } = c.req.param();
+    let { data: attestation } = await db
+      .from("validations")
+      .select()
+      .eq("job_id", validationId)
+      .limit(1)
+      .single();
+    if (attestation) {
+      return {
+        ...c.res(
+          infoScreen("Validation successful, please pay.", [
+            <Button.Transaction target={`/transactions/${validationId}`}>
+              Pay now
+            </Button.Transaction>,
+          ])
+        ),
+        action: `/payments/${validationId}`,
+      };
+    }
+
+    return {
+      ...c.res(
+        infoScreen("Still validating...", [
+          <Button value="REFRESH">Check progress</Button>,
+        ])
+      ),
+      action: `/validations/${validationId}`,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
+  }
+});
 app.transaction("/transactions/:transactionId", (c) => {
-  const { transactionId } = c.req.param();
-  console.log({ transactionId });
   return c.send({
-    // @ts-ignore
     // chainId: "eip155:666666666",
     chainId: "eip155:84532",
     to: "0xd9f2D8DA9c8Ff285080FE0Df6285F3551bf1397b",
@@ -103,8 +155,6 @@ app.transaction("/transactions/:transactionId", (c) => {
   });
 });
 app.frame("/jobs/:jobId", async (c) => {
-  console.log(c);
-  console.log(c.transactionId);
   try {
     const { jobId } = c.req.param();
     let { data: attestation } = await db
