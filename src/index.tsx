@@ -88,6 +88,7 @@ app.frame("/", async (c) => {
   }
 });
 app.frame("/payments/:validationId", async (c) => {
+  console.log(c);
   try {
     if (c.transactionId) {
       const transaction = await provider.getTransaction(c.transactionId);
@@ -111,14 +112,12 @@ app.frame("/payments/:validationId", async (c) => {
         userFid: attestation.fid,
       })
     );
-    return {
-      ...c.res(
-        infoScreen("Success, time to start minting EAS", [
-          <Button value="REFRESH">Continue</Button>,
-        ])
-      ),
+    const buttons = [<Button value="REFRESH">Continue</Button>];
+    const returnObj = {
+      ...infoScreen("Success, time to start minting EAS", buttons),
       action: `/jobs/${validationId}`,
     };
+    return c.res(returnObj);
   } catch (error: any) {
     console.log(error);
     return c.res(
