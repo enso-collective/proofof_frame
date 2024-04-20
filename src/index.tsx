@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 import { IMAGE_LINKS_REGEX } from "./utils/misc";
 import { mintProcess } from "./mint";
 import { db } from "./utils/db";
+import { provider } from "./utils/eas";
 dotenv.config();
 
 export const app = new Frog({});
@@ -56,7 +57,7 @@ app.frame("/", async (c) => {
             label: "Testing",
             jobId: Math.random().toString().slice(-15) + Date.now(),
           };
-          // mintProcess.emit("START_MINTING", JSON.stringify(emitObject));
+
           mintProcess.emit("START_VALIDATING", JSON.stringify(emitObject));
 
           returnedText = `Validating cast...`;
@@ -88,15 +89,32 @@ app.frame("/", async (c) => {
 });
 app.frame("/payments/:validationId", async (c) => {
   try {
+    const transaction = await provider.getTransaction(c.transactionId as any);
+    console.log(transaction);
+
     const { validationId } = c.req.param();
-    console.log({ validationId });
+    let { data: attestation } = await db
+      .from("validations")
+      .select()
+      .eq("job_id", validationId)
+      .limit(1)
+      .single();
+    mintProcess.emit(
+      "START_MINTING",
+      JSON.stringify({
+        ...attestation,
+        castHash: attestation.cast,
+        jobId: attestation.job_id,
+        userFid: attestation.fid,
+      })
+    );
     return {
       ...c.res(
         infoScreen("Success, time to start minting EAS", [
-          <Button value="REFRESH">Check progress</Button>,
+          <Button value="REFRESH">Continue</Button>,
         ])
       ),
-      action: `/payments/${validationId}`,
+      action: `/jobs/${validationId}`,
     };
   } catch (error: any) {
     console.log(error);

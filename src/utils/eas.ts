@@ -2,6 +2,10 @@
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { ethers } from "ethers";
 
+export const provider = ethers.getDefaultProvider("base-sepolia", {
+  alchemy: process.env["ALCHEMY_KEY"],
+});
+
 export async function eas_mint({
   cast_hash,
   fid,
@@ -17,9 +21,6 @@ export async function eas_mint({
   assoc_brand: string;
   address: string;
 }) {
-  const provider = ethers.getDefaultProvider("base-sepolia", {
-    alchemy: process.env["ALCHEMY_KEY"],
-  });
   const privateKey = process.env.PRIVATE_KEY || "";
   const signer = new ethers.Wallet(privateKey, provider);
   const eas = new EAS("0x4200000000000000000000000000000000000021");
