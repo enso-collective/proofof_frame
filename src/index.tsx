@@ -6,7 +6,6 @@ import axios from "axios";
 import { FarcasterResponse } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
-import { IMAGE_LINKS_REGEX } from "./utils/misc";
 import { mintProcess } from "./mint";
 import { db } from "./utils/db";
 import { provider } from "./utils/eas";
@@ -88,13 +87,12 @@ app.frame("/", async (c) => {
   }
 });
 app.frame("/payments/:validationId", async (c) => {
-  console.log(c);
   try {
-    if (c.transactionId) {
-      const transaction = await provider.getTransaction(c.transactionId);
-      console.log(transaction);
-      console.log(c.transactionId);
-    }
+    // if (c.transactionId) {
+    //   const transaction = await provider.getTransaction(c.transactionId);
+    //   console.log(transaction);
+    //   console.log(c.transactionId);
+    // }
 
     const { validationId } = c.req.param();
     let { data: attestation } = await db
@@ -149,14 +147,12 @@ app.frame("/validations/:validationId", async (c) => {
       return c.res(returnObj);
     }
 
-    return {
-      ...c.res(
-        infoScreen("Still validating...", [
-          <Button value="REFRESH">Check progress</Button>,
-        ])
-      ),
+    const buttons = [<Button value="REFRESH">Check progress</Button>];
+    const returnObj = {
+      ...infoScreen("Still validating...", buttons),
       action: `/validations/${validationId}`,
     };
+    return c.res(returnObj);
   } catch (error: any) {
     console.log(error);
     return c.res(
