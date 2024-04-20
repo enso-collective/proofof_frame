@@ -103,6 +103,8 @@ app.transaction("/transactions/:transactionId", (c) => {
   });
 });
 app.frame("/jobs/:jobId", async (c) => {
+  console.log(c);
+  console.log(c.transactionId);
   try {
     const { jobId } = c.req.param();
     let { data: attestation } = await db
