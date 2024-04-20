@@ -13,7 +13,7 @@ dotenv.config();
 
 export const app = new Frog({});
 const port = process.env.PORT || 5000;
-
+console.log(provider.getTransaction);
 app.use("/*", serveStatic({ root: "./public" }));
 
 app.frame("/", async (c) => {
@@ -88,11 +88,10 @@ app.frame("/", async (c) => {
 });
 app.frame("/payments/:validationId", async (c) => {
   try {
-    // if (c.transactionId) {
-    //   const transaction = await provider.getTransaction(c.transactionId);
-    //   console.log(transaction);
-    //   console.log(c.transactionId);
-    // }
+    const transaction = await provider.getTransaction(c.transactionId || `0x`);
+
+    console.log({ transaction });
+    console.log({ transactionId: c.transactionId });
 
     const { validationId } = c.req.param();
     let { data: attestation } = await db

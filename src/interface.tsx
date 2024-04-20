@@ -55,3 +55,129 @@ export interface Recasts {
 export interface FarcasterResponse {
   conversation: { cast: { direct_replies: FarcasterCast[] } };
 }
+
+export interface OnChainTransaction {
+  _id: string;
+  accessList: any[];
+  blockHash: string;
+  blockNumber: number;
+  chainId: number;
+  from: string;
+  gas: number;
+  gasPrice: string;
+  hash: string;
+  input: string;
+  maxFeePerGas: string;
+  maxPriorityFeePerGas: string;
+  nonce: number;
+  r: string;
+  s: string;
+  to: string;
+  transactionIndex: number;
+  type: number;
+  v: string;
+  value: string;
+  yParity: string;
+  receipt: {
+    blockHash: string;
+    blockNumber: number;
+    contractAddress: null;
+    cumulativeGasUsed: number;
+    effectiveGasPrice: string;
+    from: string;
+    gasUsed: number;
+    l1Fee: string;
+    l1GasPrice: string;
+    l1GasUsed: number;
+    logsBloom: string;
+    status: boolean;
+    to: string;
+    transactionHash: string;
+    transactionIndex: number;
+    type: string;
+  };
+  assetTransfers: {
+    from: string;
+    to: string;
+    type: string;
+    value: string;
+  }[];
+  delegateCalls: any[];
+  neighbor: {
+    address: string;
+    neighbor: string;
+  };
+  errors: any[];
+  parties: string[];
+  sigHash: string;
+  internalSigHashes: {
+    from: string;
+    to: string;
+    sigHash: string;
+  }[];
+  timestamp: number;
+  baseFeePerGas: number;
+  transactionFee: string;
+  context: {
+    variables: {
+      sender: {
+        type: string;
+        value: string;
+      };
+      amount: {
+        type: string;
+        value: string;
+        unit: string;
+      };
+      to: {
+        type: string;
+        value: string;
+      };
+      sent: {
+        type: string;
+        value: string;
+      };
+    };
+    summaries: {
+      category: string;
+      en: {
+        title: string;
+        default: string;
+      };
+    };
+  };
+  logs: any[];
+  netAssetTransfers: {
+    [key: string]: {
+      received: {
+        type: string;
+        value: string;
+      }[];
+      sent: {
+        type: string;
+        value: string;
+      }[];
+    };
+  };
+  contractsCreated: any[];
+  enrichedParties: {
+    [key: string]: {
+      chainId: number;
+      isContract: boolean;
+      ensNew: {
+        handle: string | null;
+        avatar: string | null;
+      };
+      bns: {
+        handle: string | null;
+        avatar: string | null;
+      };
+      farcaster: {
+        handle: string | null;
+        avatar: string | null;
+        fid: number | null;
+      };
+    }[];
+  };
+  assetsEnriched: any;
+}
