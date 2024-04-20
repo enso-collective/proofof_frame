@@ -88,17 +88,11 @@ app.frame("/", async (c) => {
 });
 app.frame("/payments/:validationId", async (c) => {
   try {
-    const url = `https://api.onceupon.gg/v2/transactions/${
-      c.transactionId || c.buttonValue
-    }`;
-    const headers = {
-      accept: "application/json",
-    };
-    const { data: tx } = await axios.get<OnChainTransaction>(url, { headers });
+    const tx = await provider.getTransaction(
+      c.transactionId || c.buttonValue || `0x`
+    );
 
-    console.log(tx);
-
-    if (true || !tx?.receipt?.status) {
+    if (!tx) {
       const buttons = [<Button value={c.transactionId}>Check progress</Button>];
       const returnObj = {
         ...infoScreen("Completing transaction...", buttons),
