@@ -117,16 +117,16 @@ app.frame("/validations/:validationId", async (c) => {
       .limit(1)
       .single();
     if (attestation) {
-      return {
-        ...c.res(
-          infoScreen("Validation successful, please pay.", [
-            <Button.Transaction target={`/transactions/${validationId}`}>
-              Pay now
-            </Button.Transaction>,
-          ])
-        ),
+      const buttons = [
+        <Button.Transaction target={`/transactions/${validationId}`}>
+          Pay now
+        </Button.Transaction>,
+      ];
+      const returnObj = {
+        ...infoScreen("Validation successful, please pay.", buttons),
         action: `/payments/${validationId}`,
       };
+      return c.res(returnObj);
     }
 
     return {
