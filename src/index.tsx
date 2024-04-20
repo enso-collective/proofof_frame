@@ -88,22 +88,20 @@ app.frame("/", async (c) => {
 });
 app.frame("/payments/:validationId", async (c) => {
   try {
+    const { validationId } = c.req.param();
     const tx = await provider.getTransaction(
       c.transactionId || c.buttonValue || `0x`
     );
-    console.log({ buttonId: c.buttonValue });
-    console.log({ transactionId: c.transactionId });
     console.log(tx);
     if (!tx) {
       const buttons = [<Button value={c.transactionId}>Check progress</Button>];
       const returnObj = {
         ...infoScreen("Completing transaction...", buttons),
-        action: `/payments/${c.transactionId || c.buttonValue}`,
+        action: `/payments/${validationId}`,
       };
       return c.res(returnObj);
     }
 
-    const { validationId } = c.req.param();
     let { data: attestation } = await db
       .from("validations")
       .select()
