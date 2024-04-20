@@ -3,7 +3,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Button, Frog, parseEther } from "frog";
 import { devtools } from "frog/dev";
 import axios from "axios";
-import { FarcasterResponse } from "./interface";
+import { FarcasterResponse, OnChainTransaction } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
 import { mintProcess } from "./mint";
@@ -88,10 +88,26 @@ app.frame("/", async (c) => {
 });
 app.frame("/payments/:validationId", async (c) => {
   try {
-    const transaction = await provider.getTransaction(c.transactionId || `0x`);
+    const url = `https://api.onceupon.gg/v2/transactions/${
+      c.transactionId || c.buttonValue
+    }`;
+    const headers = {
+      accept: "application/json",
+    };
+    const { data: tx } = await axios.get<OnChainTransaction>(url, { headers });
 
-    console.log({ transaction });
-    console.log({ transactionId: c.transactionId });
+    console.log(tx);
+
+    if (true || !tx?.receipt?.status) {
+      const buttons = [
+        <Button value={`c.transactionId`}>Check progress</Button>,
+      ];
+      const returnObj = {
+        ...infoScreen("Completing transaction...", buttons),
+        action: `/payments/${c.transactionId}`,
+      };
+      return c.res(returnObj);
+    }
 
     const { validationId } = c.req.param();
     let { data: attestation } = await db
