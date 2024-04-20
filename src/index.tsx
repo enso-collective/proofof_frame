@@ -89,7 +89,8 @@ app.frame("/", async (c) => {
 });
 app.frame("/payments/:validationId", async (c) => {
   try {
-    const transaction = await provider.getTransaction(c.transactionId as any);
+    console.log(c.transactionId);
+    const transaction = await provider.getTransaction(`0x${c.transactionId}`);
     console.log(transaction);
 
     const { validationId } = c.req.param();
