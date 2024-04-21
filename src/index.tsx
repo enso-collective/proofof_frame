@@ -69,7 +69,7 @@ app.frame("/", async (c) => {
           returnObj = {
             intents: buttons,
             action: `/vision/${emitObject.jobId}`,
-            image: <Image src={embedWithImage.url} objectFit="cover" />,
+            image: <Image src={embedWithImage.url} objectFit="contain" />,
           };
         }
 
