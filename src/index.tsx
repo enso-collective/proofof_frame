@@ -183,7 +183,7 @@ app.frame("/validations/:validationId", async (c) => {
       ];
       const returnObj = {
         ...infoScreen(
-          `Validation successful!\n Attest to your image with an onchain EAS Proof, and receive a 33 $degen rebate on the Degen L3.\n 0.00088 Base ETH fee is required.`,
+          `Validation successful!\n Attest to your image with an onchain EAS Proof, and receive a 33 $degen rebate on the Degen L3. 0.00088 Base ETH fee is required.`,
           buttons
         ),
         action: `/payments/${validationId}`,
