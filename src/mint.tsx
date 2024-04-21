@@ -74,15 +74,15 @@ mintProcess.on("START_MINTING", async (data) => {
     }
     const [ethAddress] = addresses;
 
-    const tx = await eas_mint({
-      fid: mintPayload.userFid,
-      cast_hash: mintPayload.castHash,
-      cast_content: mintPayload.text,
-      cast_image_link: mintPayload.image,
-      assoc_brand: "General",
-      address: ethAddress,
-    });
-    console.log(tx);
+    // const tx = await eas_mint({
+    //   fid: mintPayload.userFid,
+    //   cast_hash: mintPayload.castHash,
+    //   cast_content: mintPayload.text,
+    //   cast_image_link: mintPayload.image,
+    //   assoc_brand: "General",
+    //   address: ethAddress,
+    // });
+    // console.log(tx);
 
     const { data: responsePayload } = await axios.post(
       process.env.MINT_FRAME_URL || "",
