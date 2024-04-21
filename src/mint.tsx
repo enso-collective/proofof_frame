@@ -103,7 +103,7 @@ mintProcess.on("START_MINTING", async (data) => {
       const signer = new ethers.Wallet(privateKey, degenProvider);
       const tx = await signer.sendTransaction({
         to: ethAddress,
-        value: ethers.parseEther("0.01"),
+        value: ethers.parseEther("33"),
       });
       await tx.wait();
 

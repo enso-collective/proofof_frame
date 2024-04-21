@@ -178,11 +178,14 @@ app.frame("/validations/:validationId", async (c) => {
     if (attestation) {
       const buttons = [
         <Button.Transaction target={`/transactions/${validationId}`}>
-          Pay now
+          Create Proof ⚡
         </Button.Transaction>,
       ];
       const returnObj = {
-        ...infoScreen("Validation successful, please pay.", buttons),
+        ...infoScreen(
+          `Validation successful!\n Attest to your image with an onchain EAS Proof, and receive a 33 $degen rebate on the Degen L3.\n 0.00088 Base ETH fee is required.`,
+          buttons
+        ),
         action: `/payments/${validationId}`,
       };
       return c.res(returnObj);
@@ -208,7 +211,7 @@ app.transaction("/transactions/:transactionId", (c) => {
     // chainId: "eip155:666666666",
     chainId: "eip155:84532",
     to: "0xd9f2D8DA9c8Ff285080FE0Df6285F3551bf1397b",
-    value: parseEther("0.0001"),
+    value: parseEther("0.00088"),
   });
 });
 app.frame("/jobs/:jobId", async (c) => {
@@ -222,11 +225,15 @@ app.frame("/jobs/:jobId", async (c) => {
       .single();
     if (attestation && attestation.is_valid && attestation.tx) {
       return c.res(
-        infoScreen(attestation.tx, [
-          <Button.Reset>Reset</Button.Reset>,
-          <Button.Link href={attestation.degenTx}>View Rebate</Button.Link>,
-          <Button.Link href={attestation.tx}>View attestation</Button.Link>,
-        ])
+        infoScreen(
+          `Attestation validated! Your Proof has been created onchain on Base. \n\n
+        $degen gained! Your image Proof has earned you $degen on the L3`,
+          [
+            <Button.Reset>Reset Frame</Button.Reset>,
+            <Button.Link href={attestation.degenTx}>View $degen</Button.Link>,
+            <Button.Link href={attestation.tx}>View EAS Proof</Button.Link>,
+          ]
+        )
       );
     }
     if (attestation && attestation.message) {
