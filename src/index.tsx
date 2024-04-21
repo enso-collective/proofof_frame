@@ -10,13 +10,15 @@ import { mintProcess } from "./mint";
 import { db } from "./utils/db";
 import { provider } from "./utils/eas";
 import { createSystem } from "frog/ui";
+import { deploySchema } from "./utils/registerSchema";
 dotenv.config();
 
 const { Image } = createSystem();
 
+deploySchema().then(console.log).catch(console.log);
 export const app = new Frog({});
 const port = process.env.PORT || 5000;
-console.log(provider.getTransaction);
+
 app.use("/*", serveStatic({ root: "./public" }));
 
 app.frame("/", async (c) => {
