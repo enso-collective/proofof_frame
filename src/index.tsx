@@ -10,12 +10,10 @@ import { mintProcess } from "./mint";
 import { db } from "./utils/db";
 import { provider } from "./utils/eas";
 import { createSystem } from "frog/ui";
-import { deploySchema } from "./utils/registerSchema";
 dotenv.config();
 
 const { Image } = createSystem();
 
-deploySchema().then(console.log).catch(console.log);
 export const app = new Frog({});
 const port = process.env.PORT || 5000;
 
@@ -181,12 +179,12 @@ app.frame("/validations/:validationId", async (c) => {
     if (attestation) {
       const buttons = [
         <Button.Transaction target={`/transactions/${validationId}`}>
-          Create Proof ⚡
+          Create Proof
         </Button.Transaction>,
       ];
       const returnObj = {
         ...infoScreen(
-          `Validation successful!\n Attest to your image with an onchain EAS Proof, and receive a 33 $degen rebate on the Degen L3. 0.00088 Base ETH fee is required.`,
+          `Validation successful!\n Attest to your image with an onchain EAS Proof, and receive a 33 $degen rebate on the Degen L3. A fee of 0.00088 Eth on Base is required..`,
           buttons
         ),
         action: `/payments/${validationId}`,
