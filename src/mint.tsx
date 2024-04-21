@@ -4,9 +4,10 @@ import axios from "axios";
 import { db } from "./utils/db";
 import { ethers } from "ethers";
 
-const degenProvider = ethers.getDefaultProvider(666666666, {
-  alchemy: process.env["ALCHEMY_KEY"],
-});
+const degenProvider = new ethers.JsonRpcProvider(
+  "https://rpc.degen.tips",
+  666666666
+);
 interface MintPayload {
   castHash: string;
   userFid: string;
