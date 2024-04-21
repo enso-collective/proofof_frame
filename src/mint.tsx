@@ -2,7 +2,11 @@ import { EventEmitter } from "events";
 import { eas_mint } from "./utils/eas";
 import axios from "axios";
 import { db } from "./utils/db";
+import { ethers } from "ethers";
 
+const degenProvider = ethers.getDefaultProvider(666666666, {
+  alchemy: process.env["ALCHEMY_KEY"],
+});
 interface MintPayload {
   castHash: string;
   userFid: string;
@@ -94,11 +98,20 @@ mintProcess.on("START_MINTING", async (data) => {
       });
     }
     if (responsePayload.url) {
+      const privateKey = process.env.PRIVATE_KEY || "";
+      const signer = new ethers.Wallet(privateKey, degenProvider);
+      const tx = await signer.sendTransaction({
+        to: ethAddress,
+        value: ethers.parseEther("0.01"),
+      });
+      await tx.wait();
+
       await db.from("attestations").insert({
         job_id: mintPayload.jobId,
         is_valid: true,
         cast: mintPayload.castHash,
         tx: responsePayload.url,
+        degenTx: `https://www.onceupon.xyz/${tx.hash}`,
       });
     }
   } catch (error: any) {

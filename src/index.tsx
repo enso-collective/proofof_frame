@@ -92,7 +92,7 @@ app.frame("/payments/:validationId", async (c) => {
     const tx = await provider.getTransaction(
       c.transactionId || c.buttonValue || `0x`
     );
-    console.log(tx);
+
     if (!tx) {
       const buttons = [<Button value={c.transactionId}>Check progress</Button>];
       const returnObj = {
@@ -190,7 +190,8 @@ app.frame("/jobs/:jobId", async (c) => {
       return c.res(
         infoScreen(attestation.tx, [
           <Button.Reset>Reset</Button.Reset>,
-          <Button.Link href={attestation.tx}>View</Button.Link>,
+          <Button.Link href={attestation.degenTx}>View Rebate</Button.Link>,
+          <Button.Link href={attestation.tx}>View attestation</Button.Link>,
         ])
       );
     }
