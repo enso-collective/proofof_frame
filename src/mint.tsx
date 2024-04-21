@@ -73,6 +73,17 @@ mintProcess.on("START_MINTING", async (data) => {
       return;
     }
     const [ethAddress] = addresses;
+
+    const tx = await eas_mint({
+      fid: mintPayload.userFid,
+      cast_hash: mintPayload.castHash,
+      cast_content: mintPayload.text,
+      cast_image_link: mintPayload.image,
+      assoc_brand: "General",
+      address: ethAddress,
+    });
+    console.log(tx);
+
     const { data: responsePayload } = await axios.post(
       process.env.MINT_FRAME_URL || "",
       {
@@ -146,14 +157,6 @@ mintProcess.on("START_VALIDATING", async (data) => {
     console.log(error);
   }
 });
-
-// const tx = await eas_mint(
-//   frameData?.castId?.hash as string,
-//   String(frameData?.fid),
-//   returnedText,
-//   embedWithImage.url,
-//   "Testing"
-// );
 
 // returnedText += `\n \n https://www.onceupon.gg/${tx.tx.hash}`;
 // willRedirect = `https://www.onceupon.gg/${tx.tx.hash}`;

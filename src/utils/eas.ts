@@ -6,6 +6,11 @@ export const provider = ethers.getDefaultProvider("base-sepolia", {
   alchemy: process.env["ALCHEMY_KEY"],
 });
 
+const degenProvider = new ethers.JsonRpcProvider(
+  "https://rpc.degen.tips",
+  666666666
+);
+
 export async function eas_mint({
   cast_hash,
   fid,
@@ -22,8 +27,8 @@ export async function eas_mint({
   address: string;
 }) {
   const privateKey = process.env.PRIVATE_KEY || "";
-  const signer = new ethers.Wallet(privateKey, provider);
-  const eas = new EAS("0x4200000000000000000000000000000000000021");
+  const signer = new ethers.Wallet(privateKey, degenProvider);
+  const eas = new EAS("0x76d28C94707b64B19f8680159E9ed1aA0B5D0EB9");
   eas.connect(signer);
 
   const ts = Math.floor(Date.now() / 1000);
