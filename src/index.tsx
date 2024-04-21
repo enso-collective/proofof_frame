@@ -3,7 +3,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Button, Frog, parseEther } from "frog";
 import { devtools } from "frog/dev";
 import axios from "axios";
-import { FarcasterResponse, OnChainTransaction } from "./interface";
+import { FarcasterResponse } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
 import { mintProcess } from "./mint";
@@ -84,9 +84,10 @@ app.frame("/", async (c) => {
       }
       default: {
         return c.res(
-          infoScreen("Press button to display your reply to this cast", [
-            <Button value="CAST_TEXT">Fetch image</Button>,
-          ])
+          infoScreen(
+            `First, reply to this cast with an image and image description. \nThen, continue for AI image validation and EAS attestation, and $degen!`,
+            [<Button value="CAST_TEXT">create proof:of my image</Button>]
+          )
         );
       }
     }
