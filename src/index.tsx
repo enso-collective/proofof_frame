@@ -9,7 +9,10 @@ import dotenv from "dotenv";
 import { mintProcess } from "./mint";
 import { db } from "./utils/db";
 import { provider } from "./utils/eas";
+import { createSystem } from "frog/ui";
 dotenv.config();
+
+const { Image } = createSystem();
 
 export const app = new Frog({});
 const port = process.env.PORT || 5000;
@@ -59,11 +62,14 @@ app.frame("/", async (c) => {
 
           mintProcess.emit("START_VALIDATING", JSON.stringify(emitObject));
 
-          returnedText = `Validating cast...`;
-          buttons = [<Button value="CAST_PROGRESS">Check progress</Button>];
+          returnedText = `Validate with AI Vision`;
+          buttons = [
+            <Button value="CAST_PROGRESS">Validate with AI vision</Button>,
+          ];
           returnObj = {
-            ...infoScreen(returnedText, buttons),
-            action: `/validations/${emitObject.jobId}`,
+            intents: buttons,
+            action: `/vision/${emitObject.jobId}`,
+            image: <Image src={embedWithImage.url} />,
           };
         }
 
@@ -72,7 +78,7 @@ app.frame("/", async (c) => {
       default: {
         return c.res(
           infoScreen("Press button to display your reply to this cast", [
-            <Button value="CAST_TEXT">Fetch text</Button>,
+            <Button value="CAST_TEXT">Fetch image</Button>,
           ])
         );
       }
@@ -86,6 +92,27 @@ app.frame("/", async (c) => {
     );
   }
 });
+
+app.frame("/vision/:validationId", async (c) => {
+  try {
+    const { validationId } = c.req.param();
+    const returnedText = `Validating cast...`;
+    const buttons = [<Button value="CAST_PROGRESS">Continue</Button>];
+    const returnObj = {
+      ...infoScreen(returnedText, buttons),
+      action: `/validations/${validationId}`,
+    };
+    return c.res(returnObj);
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
+  }
+});
+
 app.frame("/payments/:validationId", async (c) => {
   try {
     const { validationId } = c.req.param();
