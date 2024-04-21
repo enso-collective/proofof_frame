@@ -74,7 +74,7 @@ app.frame("/", async (c) => {
                 src={embedWithImage.url}
                 objectFit="contain"
                 width={"256"}
-                height={"128"}
+                height={"256"}
               />
             ),
           };
