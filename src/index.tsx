@@ -224,7 +224,7 @@ app.frame("/validations/:validationId", async (c) => {
 app.transaction("/transactions/:transactionId", (c) => {
   return c.send({
     // chainId: "eip155:666666666",
-    chainId: "eip155:84532",
+    chainId: "eip155:8453",
     to: "0xd9f2D8DA9c8Ff285080FE0Df6285F3551bf1397b",
     value: parseEther("0.00088"),
   });
