@@ -21,6 +21,7 @@ app.use("/*", serveStatic({ root: "./public" }));
 
 app.frame("/", async (c) => {
   try {
+    throw new Error("Hellllllooooo!!!!");
     const { status, frameData } = c;
     switch (status) {
       case "response": {
