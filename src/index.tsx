@@ -193,7 +193,7 @@ app.frame("/validations/:validationId", async (c) => {
     }
     if (
       attestation &&
-      attestation.hasOwnProperty("") &&
+      attestation.hasOwnProperty("is_valid") &&
       !attestation.is_valid
     ) {
       const buttons = [<Button.Reset>Reset</Button.Reset>];
