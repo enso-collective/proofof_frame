@@ -241,7 +241,7 @@ app.frame("/jobs/:jobId", async (c) => {
     if (attestation && attestation.is_valid && attestation.tx) {
       return c.res(
         infoScreen(
-          `Attestation validated! Your Proof has been created onchain on Base. \n\n
+          `Attestation validated! Your Proof has been created onchain on Degen. \n\n
         $degen gained! Your image Proof has earned you $degen on the L3`,
           [
             <Button.Reset>Reset Frame</Button.Reset>,
