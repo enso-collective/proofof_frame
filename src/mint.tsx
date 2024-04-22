@@ -145,6 +145,35 @@ mintProcess.on("START_MINTING", async (data) => {
 
 mintProcess.on("START_VALIDATING", async (data) => {
   const mintPayload = JSON.parse(data) as MintPayload;
+  const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${mintPayload.userFid}`;
+  const headers = {
+    accept: "application/json",
+    api_key: process.env.NEYNAR_API_KEY,
+  };
+  const {
+    data: { users },
+  } = await axios.get<Payload>(url, { headers });
+  const [user] = users;
+  if (!user) {
+    return;
+  }
+  let withError = true;
+  const { data: responsePayload } = await axios.post(
+    "https://us-central1-enso-collective.cloudfunctions.net/validationWebhook",
+    {
+      key: process.env.ENSO_KEY,
+      username: user.username,
+      imageUrl: mintPayload.image,
+      message: mintPayload.text,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        accept: "application/json",
+      },
+    }
+  );
+  console.log(responsePayload);
   try {
     await db.from("validations").insert({
       job_id: mintPayload.jobId,
