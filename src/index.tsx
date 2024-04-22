@@ -225,7 +225,7 @@ app.transaction("/transactions/:transactionId", (c) => {
   return c.send({
     // chainId: "eip155:666666666",
     chainId: "eip155:8453",
-    to: (process.env.recipient || ``) as any,
+    to: (process.env.RECIPIENT || ``) as any,
     value: parseEther("0.00088"),
   });
 });
