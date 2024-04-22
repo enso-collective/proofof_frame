@@ -176,7 +176,7 @@ app.frame("/validations/:validationId", async (c) => {
       .eq("job_id", validationId)
       .limit(1)
       .single();
-    if (attestation) {
+    if (attestation?.is_valid) {
       const buttons = [
         <Button.Transaction target={`/transactions/${validationId}`}>
           Create Proof
@@ -188,6 +188,20 @@ app.frame("/validations/:validationId", async (c) => {
           buttons
         ),
         action: `/payments/${validationId}`,
+      };
+      return c.res(returnObj);
+    }
+    if (
+      attestation &&
+      attestation.hasOwnProperty("") &&
+      !attestation.is_valid
+    ) {
+      const buttons = [<Button.Reset>Reset</Button.Reset>];
+      const returnObj = {
+        ...infoScreen(
+          `We didn't find a clear brand or quest described in your cast. Please retry your cast with more specific description of the brand or quest hashtag.`,
+          buttons
+        ),
       };
       return c.res(returnObj);
     }

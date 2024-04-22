@@ -56,6 +56,49 @@ export const mintProcess = new StartMintProcess();
 mintProcess.on("START_MINTING", async (data) => {
   const mintPayload = JSON.parse(data) as MintPayload;
   try {
+    let { data: attestation } = await db
+      .from("validations")
+      .select()
+      .eq("job_id", mintPayload.jobId)
+      .limit(1)
+      .single();
+
+    let tx = await eas_mint({
+      fid: mintPayload.userFid,
+      cast_hash: mintPayload.castHash,
+      cast_content: mintPayload.text,
+      cast_image_link: mintPayload.image,
+      assoc_brand: "General",
+      address: attestation.address,
+    });
+    const degenHash = tx.tx.hash;
+    const privateKey = process.env.PRIVATE_KEY || "";
+    const signer = new ethers.Wallet(privateKey, degenProvider);
+    let secondTx = await signer.sendTransaction({
+      to: attestation.address,
+      value: ethers.parseEther("33"),
+    });
+    await secondTx.wait();
+
+    await db.from("attestations").insert({
+      job_id: mintPayload.jobId,
+      is_valid: true,
+      cast: mintPayload.castHash,
+      tx: `https://www.onceupon.xyz/${degenHash}`,
+      degenTx: `https://www.onceupon.xyz/${secondTx.hash}`,
+    });
+  } catch (error: any) {
+    console.log(error);
+  }
+});
+
+mintProcess.on("START_VALIDATING", async (data) => {
+  const mintPayload = JSON.parse(data) as MintPayload;
+  let withError = true;
+  let address = "";
+  let username = "";
+
+  try {
     const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${mintPayload.userFid}`;
     const headers = {
       accept: "application/json",
@@ -73,26 +116,15 @@ mintProcess.on("START_MINTING", async (data) => {
       return;
     }
     const [ethAddress] = addresses;
-
-    // const tx = await eas_mint({
-    //   fid: mintPayload.userFid,
-    //   cast_hash: mintPayload.castHash,
-    //   cast_content: mintPayload.text,
-    //   cast_image_link: mintPayload.image,
-    //   assoc_brand: "General",
-    //   address: ethAddress,
-    // });
-    // console.log(tx);
-
+    address = ethAddress;
+    username = user.username;
     const { data: responsePayload } = await axios.post(
-      process.env.MINT_FRAME_URL || "",
+      "https://us-central1-enso-collective.cloudfunctions.net/validationWebhook",
       {
         key: process.env.ENSO_KEY,
         username: user.username,
         imageUrl: mintPayload.image,
         message: mintPayload.text,
-        castHash: mintPayload.castHash,
-        wallet: ethAddress,
       },
       {
         headers: {
@@ -101,107 +133,26 @@ mintProcess.on("START_MINTING", async (data) => {
         },
       }
     );
-    if (responsePayload.message) {
-      await db.from("attestations").insert({
-        job_id: mintPayload.jobId,
-        is_valid: false,
-        cast: mintPayload.castHash,
-        message: responsePayload.message,
-      });
-    }
-    if (responsePayload.url) {
-      const privateKey = process.env.PRIVATE_KEY || "";
-      const signer = new ethers.Wallet(privateKey, degenProvider);
-      const tx = await signer.sendTransaction({
-        to: ethAddress,
-        value: ethers.parseEther("33"),
-      });
-      await tx.wait();
-
-      await db.from("attestations").insert({
-        job_id: mintPayload.jobId,
-        is_valid: true,
-        cast: mintPayload.castHash,
-        tx: responsePayload.url,
-        degenTx: `https://www.onceupon.xyz/${tx.hash}`,
-      });
+    if (responsePayload?.brand) {
+      withError = false;
     }
   } catch (error: any) {
-    if (error?.response?.data?.message) {
-      try {
-        await db.from("attestations").insert({
-          job_id: mintPayload.jobId,
-          is_valid: false,
-          cast: mintPayload.castHash,
-          message: error.response.data.message,
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    }
+    withError = true;
     console.log(error);
+  } finally {
+    try {
+      await db.from("validations").insert({
+        job_id: mintPayload.jobId,
+        cast: mintPayload.castHash,
+        text: mintPayload.text,
+        image: mintPayload.image,
+        fid: mintPayload.userFid,
+        is_valid: !withError,
+        address,
+        username,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 });
-
-mintProcess.on("START_VALIDATING", async (data) => {
-  const mintPayload = JSON.parse(data) as MintPayload;
-  const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${mintPayload.userFid}`;
-  const headers = {
-    accept: "application/json",
-    api_key: process.env.NEYNAR_API_KEY,
-  };
-  const {
-    data: { users },
-  } = await axios.get<Payload>(url, { headers });
-  const [user] = users;
-  if (!user) {
-    return;
-  }
-  let withError = true;
-  const { data: responsePayload } = await axios.post(
-    "https://us-central1-enso-collective.cloudfunctions.net/validationWebhook",
-    {
-      key: process.env.ENSO_KEY,
-      username: user.username,
-      imageUrl: mintPayload.image,
-      message: mintPayload.text,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        accept: "application/json",
-      },
-    }
-  );
-  console.log(responsePayload);
-  try {
-    await db.from("validations").insert({
-      job_id: mintPayload.jobId,
-      cast: mintPayload.castHash,
-      text: mintPayload.text,
-      image: mintPayload.image,
-      fid: mintPayload.userFid,
-    });
-  } catch (error: any) {
-    console.log(error);
-  }
-});
-
-// returnedText += `\n \n https://www.onceupon.gg/${tx.tx.hash}`;
-// willRedirect = `https://www.onceupon.gg/${tx.tx.hash}`;
-
-// if (willRedirect) {
-//   buttons.push(<Button.Link href={willRedirect}>Visit</Button.Link>);
-// }
-
-// let { data: user } = await db
-//     .from("users")
-//     .select()
-//     .eq("id", payload.user_id)
-//     .limit(1)
-//     .single();
-
-//   await db.from("stories").insert({
-//     ...payload,
-//     user_id: payload.user_id,
-//   });
