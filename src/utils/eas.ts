@@ -2,7 +2,7 @@
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { ethers } from "ethers";
 
-export const provider = ethers.getDefaultProvider("base-sepolia", {
+export const provider = ethers.getDefaultProvider("base", {
   alchemy: process.env["ALCHEMY_KEY"],
 });
 
