@@ -275,6 +275,14 @@ app.frame("/jobs/:jobId", async (c) => {
   }
 });
 
+app.use("/syndicate/transaction_status", async (c) => {
+  try {
+    console.log(JSON.stringify(c.body, null, 2));
+  } catch (error) {
+    console.log(error);
+  }
+  return c.json({ success: true });
+});
 devtools(app, { serveStatic });
 
 serve({
