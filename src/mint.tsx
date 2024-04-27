@@ -92,7 +92,7 @@ mintProcess.on("START_MINTING", async (data) => {
         functionSignature: "transfer(address account, uint256 value)",
         args: {
           account: attestation.address,
-          value: ethers.parseEther("0.1").toString(),
+          value: ethers.parseEther("33").toString(),
         },
       },
       {
