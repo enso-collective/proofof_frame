@@ -309,6 +309,8 @@ app.use("/syndicate/transaction_status", async (c) => {
       timestamp,
       process.env.WEBHOOK_SECRET!
     );
+    console.log({ expectedSignature, signature });
+    console.log(process.env.WEBHOOK_SECRET);
     if (
       crypto.timingSafeEqual(
         Buffer.from(signature),
