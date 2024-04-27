@@ -67,7 +67,7 @@ mintProcess.on("START_MINTING", async (data) => {
       {
         key: process.env.ENSO_KEY!,
         username: attestation.username,
-        attestWallet: attestation.address,
+        wallet: attestation.address,
         postUrl: `https://warpcast.com/${
           attestation.username
         }/${mintPayload.castHash.slice(0, 10)}`,
