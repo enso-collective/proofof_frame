@@ -10,6 +10,8 @@ import { mintProcess } from "./mint";
 import { db } from "./utils/db";
 import { provider } from "./utils/eas";
 import { createSystem } from "frog/ui";
+import crypto from "crypto";
+import { generateSignature, parseSignatureHeader } from "./utils/crypto";
 dotenv.config();
 
 const { Image } = createSystem();
@@ -277,11 +279,41 @@ app.frame("/jobs/:jobId", async (c) => {
 
 app.use("/syndicate/transaction_status", async (c) => {
   try {
-    console.log(JSON.stringify(c.body, null, 2));
+    const body = await c.req.json();
+    console.log(JSON.stringify(body, null, 2));
+    const signatureHeader = c.req.header("syndicate-signature") as string;
+    if (!signatureHeader) {
+      c.status(401);
+      return c.text("No signature header provided");
+    }
+    const { timestamp, signature } = parseSignatureHeader(signatureHeader);
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+    if (parseInt(timestamp) < fiveMinutesAgo) {
+      c.status(403);
+      return c.text("Request is too old to be trusted");
+    }
+    const expectedSignature = generateSignature(
+      body,
+      timestamp,
+      process.env.WEBHOOK_SECRET!
+    );
+    if (
+      crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(expectedSignature)
+      )
+    ) {
+      c.status(200);
+      return c.text("Signature verified successfully");
+    } else {
+      c.status(401);
+      return c.text("Invalid signature");
+    }
   } catch (error) {
     console.log(error);
+    c.status(400);
+    return c.text("Something went wrong");
   }
-  return c.json({ success: true });
 });
 devtools(app, { serveStatic });
 
