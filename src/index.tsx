@@ -307,7 +307,7 @@ app.use("/syndicate/transaction_status", async (c) => {
     const payload = {
       data: body.data,
       eventType: body.eventType,
-      triggeredAt: timestamp,
+      triggeredAt: parseInt(timestamp),
     };
     const expectedSignature = generateSignature(
       payload,
