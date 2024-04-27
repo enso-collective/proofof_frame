@@ -292,14 +292,10 @@ app.frame("/jobs/:jobId", async (c) => {
 
 app.use("/syndicate/transaction_status", async (c) => {
   try {
-    console.log(c);
     const body = (await c.req.json()) as TransactionStatusChangeEvent;
-    console.log(c.req.header("Syndicate-Signature"));
-    console.log(c.req.header("syndicate-signature"));
     const signatureHeader = c.req.header("syndicate-signature") as string;
     if (!signatureHeader) {
       c.status(401);
-      console.log("No signature header provided");
       return c.text("No signature header provided");
     }
     const { timestamp, signature } = parseSignatureHeader(signatureHeader);
