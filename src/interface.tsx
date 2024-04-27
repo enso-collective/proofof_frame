@@ -181,3 +181,15 @@ export interface OnChainTransaction {
   };
   assetsEnriched: any;
 }
+
+export interface TransactionStatusChangeEvent {
+  data: {
+    blockNumber: number;
+    chainId: number;
+    previousStatus: string;
+    status: string;
+    transactionHash: string;
+    transactionId: string;
+  };
+  eventType: string;
+}

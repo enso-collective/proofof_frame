@@ -1,5 +1,4 @@
 import { EventEmitter } from "events";
-import { eas_mint } from "./utils/eas";
 import axios from "axios";
 import { db } from "./utils/db";
 import { ethers } from "ethers";
@@ -63,29 +62,55 @@ mintProcess.on("START_MINTING", async (data) => {
       .limit(1)
       .single();
 
-    let tx = await eas_mint({
-      fid: mintPayload.userFid,
-      cast_hash: mintPayload.castHash,
-      cast_content: mintPayload.text,
-      cast_image_link: mintPayload.image,
-      assoc_brand: "General",
-      address: attestation.address,
-    });
-    const degenHash = tx.tx.hash;
-    const privateKey = process.env.PRIVATE_KEY || "";
-    const signer = new ethers.Wallet(privateKey, degenProvider);
-    let secondTx = await signer.sendTransaction({
-      to: attestation.address,
-      value: ethers.parseEther("33"),
-    });
-    await secondTx.wait();
+    const { data: mintResponse } = await axios.post(
+      "https://us-central1-enso-collective.cloudfunctions.net/internalMintWebhook",
+      {
+        key: process.env.ENSO_KEY!,
+        username: attestation.username,
+        attestWallet: attestation.address,
+        postUrl: `https://warpcast.com/${
+          attestation.username
+        }/${mintPayload.castHash.slice(0, 10)}`,
+        postImageLink: mintPayload.image,
+        postContent: mintPayload.text,
+        questId: "General",
+      },
+
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log(mintResponse);
+    const { data: transactionResponse } = await axios.post(
+      "https://api.syndicate.io/transact/sendTransaction",
+      {
+        projectId: process.env.SYNDICATE_PROJECT_ID!,
+        contractAddress: "0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed",
+        chainId: 8453,
+        functionSignature: "transfer(address account, uint256 value)",
+        args: {
+          account: attestation.address,
+          value: ethers.parseEther("0.1"),
+        },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.SYNDICATE_API_KEY!}`,
+        },
+      }
+    );
 
     await db.from("attestations").insert({
       job_id: mintPayload.jobId,
       is_valid: true,
       cast: mintPayload.castHash,
-      tx: `https://www.onceupon.xyz/${degenHash}`,
-      degenTx: `https://www.onceupon.xyz/${secondTx.hash}`,
+      // tx: `https://www.onceupon.xyz/${degenHash}`,
+      tx: mintResponse.url,
+      tx_id: transactionResponse.transactionId,
+      // degenTx: `https://www.onceupon.xyz/${secondTx.hash}`,
     });
   } catch (error: any) {
     console.log(error);

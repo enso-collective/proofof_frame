@@ -3,7 +3,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Button, Frog, parseEther } from "frog";
 import { devtools } from "frog/dev";
 import axios from "axios";
-import { FarcasterResponse } from "./interface";
+import { FarcasterResponse, TransactionStatusChangeEvent } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
 import { mintProcess } from "./mint";
@@ -240,23 +240,36 @@ app.frame("/jobs/:jobId", async (c) => {
       .eq("job_id", jobId)
       .limit(1)
       .single();
-    if (attestation && attestation.is_valid && attestation.tx) {
-      return c.res(
-        infoScreen(
-          `Attestation validated! Your Proof has been created onchain on Degen. \n\n
-        $degen gained! Your image Proof has earned you $degen on the L3`,
-          [
-            <Button.Reset>Reset Frame</Button.Reset>,
-            <Button.Link href={attestation.degenTx}>View $degen</Button.Link>,
-            <Button.Link href={attestation.tx}>View EAS Proof</Button.Link>,
-          ]
-        )
-      );
-    }
-    if (attestation && attestation.message) {
-      return c.res(
-        infoScreen(attestation.message, [<Button.Reset>Reset</Button.Reset>])
-      );
+    if (attestation) {
+      let { data: transaction } = await db
+        .from("transactions")
+        .select()
+        .eq("tx_id", attestation.tx_id)
+        .limit(1)
+        .single();
+
+      if (attestation.is_valid && attestation.tx && transaction) {
+        return c.res(
+          infoScreen(
+            `Attestation validated! Your Proof has been created onchain on Degen. \n\n
+          $degen gained! Your image Proof has earned you $degen on the L3`,
+            [
+              <Button.Reset>Reset Frame</Button.Reset>,
+              <Button.Link
+                href={`https://www.onceupon.xyz/${transaction.hash}`}
+              >
+                View $degen
+              </Button.Link>,
+              <Button.Link href={attestation.tx}>View EAS Proof</Button.Link>,
+            ]
+          )
+        );
+      }
+      if (attestation.message) {
+        return c.res(
+          infoScreen(attestation.message, [<Button.Reset>Reset</Button.Reset>])
+        );
+      }
     }
 
     return {
@@ -279,11 +292,14 @@ app.frame("/jobs/:jobId", async (c) => {
 
 app.use("/syndicate/transaction_status", async (c) => {
   try {
-    const body = await c.req.json();
-    console.log(JSON.stringify(body, null, 2));
+    console.log(c);
+    const body = (await c.req.json()) as TransactionStatusChangeEvent;
+    console.log(c.req.header("Syndicate-Signature"));
+    console.log(c.req.header("syndicate-signature"));
     const signatureHeader = c.req.header("syndicate-signature") as string;
     if (!signatureHeader) {
       c.status(401);
+      console.log("No signature header provided");
       return c.text("No signature header provided");
     }
     const { timestamp, signature } = parseSignatureHeader(signatureHeader);
@@ -303,10 +319,17 @@ app.use("/syndicate/transaction_status", async (c) => {
         Buffer.from(expectedSignature)
       )
     ) {
+      if (body.data.status.toLowerCase().trim() === "submitted") {
+        await db.from("transactions").insert({
+          hash: body.data.transactionHash,
+          tx_id: body.data.transactionId,
+        });
+      }
       c.status(200);
       return c.text("Signature verified successfully");
     } else {
       c.status(401);
+      console.log("Invalid signature");
       return c.text("Invalid signature");
     }
   } catch (error) {
