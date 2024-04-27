@@ -192,4 +192,5 @@ export interface TransactionStatusChangeEvent {
     transactionId: string;
   };
   eventType: string;
+  triggeredAt: number;
 }

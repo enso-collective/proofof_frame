@@ -304,8 +304,13 @@ app.use("/syndicate/transaction_status", async (c) => {
       c.status(403);
       return c.text("Request is too old to be trusted");
     }
+    const payload = {
+      data: body.data,
+      eventType: body.eventType,
+      triggeredAt: body.triggeredAt,
+    };
     const expectedSignature = generateSignature(
-      body,
+      payload,
       timestamp,
       process.env.WEBHOOK_SECRET!
     );
