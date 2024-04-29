@@ -16,7 +16,7 @@ dotenv.config();
 
 const { Image } = createSystem();
 
-export const app = new Frog({ imageOptions: { height: 600, width: 600 } });
+export const app = new Frog({});
 const port = process.env.PORT || 5000;
 
 app.use("/*", serveStatic({ root: "./public" }));
@@ -76,7 +76,7 @@ app.frame("/", async (c) => {
                 src={embedWithImage.url}
                 objectFit="contain"
                 width={"256"}
-                height={"256"}
+                height={"100%"}
               />
             ),
           };
