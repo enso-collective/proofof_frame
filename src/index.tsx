@@ -79,7 +79,7 @@ app.frame("/", async (c) => {
                 height={"256"}
               />
             ),
-            imageAspectRatio: "1:1",
+            // imageAspectRatio: "1:1",
           };
         }
 
