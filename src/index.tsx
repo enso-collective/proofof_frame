@@ -16,7 +16,7 @@ dotenv.config();
 
 const { Image } = createSystem();
 
-export const app = new Frog({ imageAspectRatio: "1:1" });
+export const app = new Frog({ imageOptions: { height: 600, width: 600 } });
 const port = process.env.PORT || 5000;
 
 app.use("/*", serveStatic({ root: "./public" }));
