@@ -74,9 +74,9 @@ app.frame("/", async (c) => {
             image: (
               <Image
                 src={embedWithImage.url}
-                objectFit="cover"
+                objectFit="contain"
                 width={"224"}
-                height={"224"}
+                height={"256"}
               />
             ),
             imageAspectRatio: "1:1",
