@@ -12,7 +12,6 @@ import { provider } from "./utils/eas";
 import { createSystem } from "frog/ui";
 import crypto from "crypto";
 import { generateSignature, parseSignatureHeader } from "./utils/crypto";
-import { litNodeClient } from "./utils/lit";
 dotenv.config();
 
 const { Image } = createSystem();
@@ -357,17 +356,24 @@ app.use("/syndicate/transaction_status", async (c) => {
 });
 devtools(app, { serveStatic });
 
-litNodeClient
-  .connect()
-  .then(() => {
-    serve({
-      fetch: app.fetch,
-      port: Number(port),
-    });
+// litNodeClient
+//   .connect()
+//   .then(() => {
+//     serve({
+//       fetch: app.fetch,
+//       port: Number(port),
+//     });
 
-    console.log(`Server listening on ${port}`);
-  })
-  .catch((e) => {
-    console.log(e);
-    process.exit(1);
-  });
+//     console.log(`Server listening on ${port}`);
+//   })
+//   .catch((e) => {
+//     console.log(e);
+//     process.exit(1);
+//   });
+
+serve({
+  fetch: app.fetch,
+  port: Number(port),
+});
+
+console.log(`Server listening on ${port}`);
