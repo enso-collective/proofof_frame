@@ -16,7 +16,7 @@ const accessControlConditions = [
     parameters: [":userAddress", "latest"],
     returnValueTest: {
       comparator: ">=",
-      value: ethers.parseEther("0"),
+      value: "0",
     },
   },
 ];
@@ -38,7 +38,7 @@ export async function litEncrypt(statement: string) {
     statement,
     uri: origin,
     version: "1",
-    chainId: 1,
+    chainId: 8453,
     nonce,
     expirationTime,
   });
