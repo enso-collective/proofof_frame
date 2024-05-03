@@ -62,7 +62,7 @@ mintProcess.on("START_MINTING", async (data) => {
       .eq("job_id", mintPayload.jobId)
       .limit(1)
       .single();
-    litEncrypt(JSON.stringify(attestation, null, 2))
+    litEncrypt(JSON.stringify(mintPayload, null, 2))
       .then(console.log)
       .catch(console.log);
     const { data: mintResponse } = await axios.post(
