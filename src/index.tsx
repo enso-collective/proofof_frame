@@ -149,12 +149,16 @@ app.frame("/payments/:validationId", async (c) => {
       .single();
     mintProcess.emit(
       "START_MINTING",
-      JSON.stringify({
-        ...attestation,
-        castHash: attestation.cast,
-        jobId: attestation.job_id,
-        userFid: attestation.fid,
-      })
+      JSON.stringify(
+        {
+          ...attestation,
+          castHash: attestation.cast,
+          jobId: attestation.job_id,
+          userFid: attestation.fid,
+        },
+        null,
+        2
+      )
     );
     const buttons = [<Button value="REFRESH">Continue</Button>];
     const returnObj = {

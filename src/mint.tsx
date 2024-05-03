@@ -62,9 +62,7 @@ mintProcess.on("START_MINTING", async (data) => {
       .eq("job_id", mintPayload.jobId)
       .limit(1)
       .single();
-    litEncrypt(JSON.stringify(mintPayload, null, 2))
-      .then(console.log)
-      .catch(console.log);
+    litEncrypt(data).then(console.log).catch(console.log);
     const { data: mintResponse } = await axios.post(
       "https://us-central1-enso-collective.cloudfunctions.net/internalMintWebhook",
       {
