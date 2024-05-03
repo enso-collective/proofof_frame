@@ -2,6 +2,7 @@ import { EventEmitter } from "events";
 import axios from "axios";
 import { db } from "./utils/db";
 import { ethers } from "ethers";
+import { litEncrypt } from "./utils/lit";
 
 const degenProvider = new ethers.JsonRpcProvider(
   "https://rpc.degen.tips",
@@ -61,7 +62,9 @@ mintProcess.on("START_MINTING", async (data) => {
       .eq("job_id", mintPayload.jobId)
       .limit(1)
       .single();
-
+    litEncrypt(JSON.stringify(attestation, null, 2))
+      .then(console.log)
+      .catch(console.log);
     const { data: mintResponse } = await axios.post(
       "https://us-central1-enso-collective.cloudfunctions.net/internalMintWebhook",
       {

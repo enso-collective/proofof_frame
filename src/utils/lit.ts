@@ -21,7 +21,7 @@ const accessControlConditions = [
   },
 ];
 
-async function litEncrypt(statement: string) {
+export async function litEncrypt(statement: string) {
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!);
   const address = ethers.getAddress(await wallet.getAddress());
   const domain = "localhost";
