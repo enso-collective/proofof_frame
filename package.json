@@ -9,12 +9,14 @@
   "dependencies": {
     "@ethereum-attestation-service/eas-sdk": "1.4.0",
     "@hono/node-server": "^1",
+    "@lit-protocol/lit-node-client": "^5.0.0",
     "@supabase/supabase-js": "^2.42.4",
     "axios": "^1.6.8",
     "dotenv": "^16.4.5",
     "ethers": "^6.11.0",
     "frog": "latest",
     "hono": "^4",
+    "siwe": "^2.3.2",
     "tsx": "^3.12.2"
   },
   "devDependencies": {
