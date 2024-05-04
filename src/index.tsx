@@ -223,7 +223,7 @@ app.frame("/payments/decrypt/:validationId", async (c) => {
       .eq("job_id", validationId)
       .limit(1)
       .single();
-    console.log(attestation);
+
     const buttons = [<Button.Reset>Reset</Button.Reset>];
     const returnObj = {
       ...infoScreen(attestation.text, buttons),
