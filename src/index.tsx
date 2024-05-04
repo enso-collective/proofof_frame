@@ -223,7 +223,6 @@ app.frame("/payments/decrypt/:validationId", async (c) => {
       .eq("job_id", validationId)
       .limit(1)
       .single();
-    console.log(attestation);
     const buttons = [<Button.Reset>Reset</Button.Reset>];
     const returnObj = {
       ...infoScreen(attestation.text, buttons),
@@ -296,7 +295,7 @@ app.transaction("/transactions/decrypt/:transactionId", (c) => {
   return c.send({
     chainId: "eip155:8453",
     to: (process.env.RECIPIENT || ``) as any,
-    value: parseEther("0.00008"),
+    value: parseEther("0.00088"),
   });
 });
 app.transaction("/transactions/:transactionId", (c) => {
