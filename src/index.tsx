@@ -218,7 +218,7 @@ app.frame("/payments/decrypt/:validationId", async (c) => {
     }
 
     let { data: attestation } = await db
-      .from("attestations")
+      .from("validations")
       .select()
       .eq("job_id", validationId)
       .limit(1)
