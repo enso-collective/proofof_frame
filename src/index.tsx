@@ -9,13 +9,10 @@ import dotenv from "dotenv";
 import { mintProcess, Payload } from "./mint";
 import { db } from "./utils/db";
 import { provider } from "./utils/eas";
-import { createSystem } from "frog/ui";
 import crypto from "crypto";
 import { generateSignature, parseSignatureHeader } from "./utils/crypto";
 import { litNodeClient } from "./utils/lit";
 dotenv.config();
-
-const { Image } = createSystem();
 
 export const app = new Frog({});
 const port = process.env.PORT || 5000;
@@ -29,6 +26,33 @@ app.frame("/", async (c) => {
       case "response": {
         if (!inputText) {
           throw new Error("Please enter text first");
+        }
+        console.log(frameData?.buttonIndex);
+        if (frameData?.buttonIndex == 1) {
+          let { data: attestation } = await db
+            .from("attestations")
+            .select()
+            .eq("cipher", inputText.trim())
+            .limit(1)
+            .single();
+          if (!attestation) {
+            throw new Error("Invalid payload");
+          }
+          const buttons = [
+            <Button.Transaction
+              target={`/transactions/decrypt/${attestation.job_id}`}
+            >
+              Reveal text
+            </Button.Transaction>,
+          ];
+          const returnObj = {
+            ...infoScreen(
+              `Reveal text, a fee of 0.00088 Eth on Base is required.`,
+              buttons
+            ),
+            action: `/payments/decrypt/${attestation.job_id}`,
+          };
+          return c.res(returnObj);
         }
         let address = "";
         let username = "";
@@ -90,7 +114,8 @@ app.frame("/", async (c) => {
             `Enter attestation text. \nThen, continue for EAS attestation and $degen!`,
             [
               <TextInput placeholder="Enter text..." />,
-              <Button>Create Proof</Button>,
+              <Button value="decrypt">Decrypt text</Button>,
+              <Button value="encrypt">Create Proof</Button>,
             ]
           )
         );
@@ -176,6 +201,43 @@ app.frame("/payments/:validationId", async (c) => {
     );
   }
 });
+app.frame("/payments/decrypt/:validationId", async (c) => {
+  try {
+    const { validationId } = c.req.param();
+    const tx = await provider.getTransaction(
+      c.transactionId || c.buttonValue || `0x`
+    );
+
+    if (!tx) {
+      const buttons = [<Button value={c.transactionId}>Check progress</Button>];
+      const returnObj = {
+        ...infoScreen("Completing transaction...", buttons),
+        action: `/payments/decrypt/${validationId}`,
+      };
+      return c.res(returnObj);
+    }
+
+    let { data: attestation } = await db
+      .from("attestations")
+      .select()
+      .eq("job_id", validationId)
+      .limit(1)
+      .single();
+
+    const buttons = [<Button.Reset>Reset</Button.Reset>];
+    const returnObj = {
+      ...infoScreen(attestation.text, buttons),
+    };
+    return c.res(returnObj);
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
+  }
+});
 app.frame("/validations/:validationId", async (c) => {
   try {
     const { validationId } = c.req.param();
@@ -229,6 +291,13 @@ app.frame("/validations/:validationId", async (c) => {
       )
     );
   }
+});
+app.transaction("/transactions/decrypt/:transactionId", (c) => {
+  return c.send({
+    chainId: "eip155:8453",
+    to: (process.env.RECIPIENT || ``) as any,
+    value: parseEther("0.00008"),
+  });
 });
 app.transaction("/transactions/:transactionId", (c) => {
   return c.send({

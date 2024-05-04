@@ -62,7 +62,7 @@ mintProcess.on("START_MINTING", async (data) => {
       .eq("job_id", mintPayload.jobId)
       .limit(1)
       .single();
-
+    const cipher = (await litEncrypt(mintPayload.text)).ciphertext;
     const { data: mintResponse } = await axios.post(
       "https://us-central1-enso-collective.cloudfunctions.net/internalMintWebhook",
       {
@@ -71,7 +71,7 @@ mintProcess.on("START_MINTING", async (data) => {
         wallet: attestation.address,
         postUrl: ``,
         postImageLink: mintPayload.image,
-        postContent: (await litEncrypt(mintPayload.text)).ciphertext,
+        postContent: cipher,
         questId: "General",
       },
 
@@ -81,7 +81,6 @@ mintProcess.on("START_MINTING", async (data) => {
         },
       }
     );
-    console.log(mintResponse);
     const { data: transactionResponse } = await axios.post(
       "https://api.syndicate.io/transact/sendTransaction",
       {
@@ -108,6 +107,7 @@ mintProcess.on("START_MINTING", async (data) => {
       cast: mintPayload.castHash,
       tx: mintResponse.url,
       tx_id: transactionResponse.transactionId,
+      cipher,
     });
   } catch (error: any) {
     console.log(error);
