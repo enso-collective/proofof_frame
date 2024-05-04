@@ -108,6 +108,7 @@ mintProcess.on("START_MINTING", async (data) => {
       tx: mintResponse.url,
       tx_id: transactionResponse.transactionId,
       cipher,
+      text: mintPayload.text,
     });
   } catch (error: any) {
     console.log(error);
