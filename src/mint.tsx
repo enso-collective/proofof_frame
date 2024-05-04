@@ -2,6 +2,7 @@ import { EventEmitter } from "events";
 import axios from "axios";
 import { db } from "./utils/db";
 import { ethers } from "ethers";
+import { litEncrypt } from "./utils/lit";
 
 const degenProvider = new ethers.JsonRpcProvider(
   "https://rpc.degen.tips",
@@ -41,7 +42,7 @@ interface User {
   power_badge: boolean;
 }
 
-interface Payload {
+export interface Payload {
   users: User[];
 }
 
@@ -68,11 +69,9 @@ mintProcess.on("START_MINTING", async (data) => {
         key: process.env.ENSO_KEY!,
         username: attestation.username,
         wallet: attestation.address,
-        postUrl: `https://warpcast.com/${
-          attestation.username
-        }/${mintPayload.castHash.slice(0, 10)}`,
+        postUrl: ``,
         postImageLink: mintPayload.image,
-        postContent: mintPayload.text,
+        postContent: (await litEncrypt(mintPayload.text)).ciphertext,
         questId: "General",
       },
 
@@ -107,10 +106,8 @@ mintProcess.on("START_MINTING", async (data) => {
       job_id: mintPayload.jobId,
       is_valid: true,
       cast: mintPayload.castHash,
-      // tx: `https://www.onceupon.xyz/${degenHash}`,
       tx: mintResponse.url,
       tx_id: transactionResponse.transactionId,
-      // degenTx: `https://www.onceupon.xyz/${secondTx.hash}`,
     });
   } catch (error: any) {
     console.log(error);

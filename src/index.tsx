@@ -1,17 +1,18 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Button, Frog, parseEther } from "frog";
+import { Button, Frog, parseEther, TextInput } from "frog";
 import { devtools } from "frog/dev";
 import axios from "axios";
 import { FarcasterResponse, TransactionStatusChangeEvent } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
-import { mintProcess } from "./mint";
+import { mintProcess, Payload } from "./mint";
 import { db } from "./utils/db";
 import { provider } from "./utils/eas";
 import { createSystem } from "frog/ui";
 import crypto from "crypto";
 import { generateSignature, parseSignatureHeader } from "./utils/crypto";
+import { litNodeClient } from "./utils/lit";
 dotenv.config();
 
 const { Image } = createSystem();
@@ -23,73 +24,74 @@ app.use("/*", serveStatic({ root: "./public" }));
 
 app.frame("/", async (c) => {
   try {
-    const { status, frameData } = c;
+    const { status, inputText, frameData } = c;
     switch (status) {
       case "response": {
-        const url = `https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${frameData?.castId?.hash}&type=hash&reply_depth=1&include_chronological_parent_casts=false`;
+        if (!inputText) {
+          throw new Error("Please enter text first");
+        }
+        let address = "";
+        let username = "";
+
+        const emitObject = {
+          castHash: "",
+          userFid: String(frameData?.fid),
+          text: inputText,
+          image: "",
+          label: "Testing",
+          jobId: Math.random().toString().slice(-15) + Date.now(),
+        };
+        const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${frameData?.fid}`;
         const headers = {
           accept: "application/json",
           api_key: process.env.NEYNAR_API_KEY,
         };
         const {
-          data: { conversation },
-        } = await axios.get<FarcasterResponse>(url, { headers });
-        const [firstSortedAndFilteredReply] = conversation?.cast?.direct_replies
-          .map((t) => ({
-            ...t,
-            date: new Date(t.timestamp),
-          }))
-          .sort((a: any, b: any) => b?.date - a?.date)
-          .filter((a) => Number(a.author.fid) === Number(frameData?.fid));
-
-        if (!firstSortedAndFilteredReply?.text) {
-          throw new Error("Please reply to this cast first");
+          data: { users },
+        } = await axios.get<Payload>(url, { headers });
+        const [user] = users;
+        if (!user) {
+          throw new Error("Something went wrong");
         }
-        let returnedText = firstSortedAndFilteredReply.text;
-        const [embedWithImage] = firstSortedAndFilteredReply.embeds.filter(
-          // (t) => new RegExp(IMAGE_LINKS_REGEX).test(t.url)
-          (t) => t.url
-        );
-        let buttons: any[] = [<Button.Reset>Reset</Button.Reset>];
-        let returnObj: any = infoScreen(returnedText, buttons);
-        if (embedWithImage) {
-          const emitObject = {
-            castHash: firstSortedAndFilteredReply.hash,
-            userFid: String(frameData?.fid),
-            text: returnedText,
-            image: embedWithImage.url,
-            label: "Testing",
-            jobId: Math.random().toString().slice(-15) + Date.now(),
-          };
-
-          mintProcess.emit("START_VALIDATING", JSON.stringify(emitObject));
-
-          returnedText = `Validate with AI Vision`;
-          buttons = [
-            <Button value="CAST_PROGRESS">Validate with AI vision</Button>,
-          ];
-          returnObj = {
-            intents: buttons,
-            action: `/vision/${emitObject.jobId}`,
-            image: (
-              <Image
-                src={embedWithImage.url}
-                objectFit="contain"
-                width={"100%"}
-                height={"100%"}
-              />
-            ),
-            imageAspectRatio: "1:1",
-          };
+        const addresses = user?.verified_addresses?.eth_addresses;
+        if (!Array.isArray(addresses) || !addresses[0]) {
+          throw new Error("Something went wrong");
         }
-
+        const [ethAddress] = addresses;
+        address = ethAddress;
+        username = user.username;
+        await db.from("validations").insert({
+          job_id: emitObject.jobId,
+          cast: "",
+          text: inputText,
+          image: "",
+          fid: frameData?.fid,
+          is_valid: true,
+          address,
+          username,
+        });
+        const buttons = [
+          <Button.Transaction target={`/transactions/${emitObject.jobId}`}>
+            Create Proof
+          </Button.Transaction>,
+        ];
+        const returnObj = {
+          ...infoScreen(
+            ` Attest to your text with an onchain EAS Proof, and receive a 33 $degen rebate on the Degen L3. A fee of 0.00088 Eth on Base is required.`,
+            buttons
+          ),
+          action: `/payments/${emitObject.jobId}`,
+        };
         return c.res(returnObj);
       }
       default: {
         return c.res(
           infoScreen(
-            `First, reply to this cast with an image and image description. \nThen, continue for AI image validation and EAS attestation, and $degen!`,
-            [<Button value="CAST_TEXT">create proof:of my image</Button>]
+            `Enter attestation text. \nThen, continue for EAS attestation and $degen!`,
+            [
+              <TextInput placeholder="Enter text..." />,
+              <Button>Create Proof</Button>,
+            ]
           )
         );
       }
@@ -230,7 +232,6 @@ app.frame("/validations/:validationId", async (c) => {
 });
 app.transaction("/transactions/:transactionId", (c) => {
   return c.send({
-    // chainId: "eip155:666666666",
     chainId: "eip155:8453",
     to: (process.env.RECIPIENT || ``) as any,
     value: parseEther("0.00088"),
@@ -356,24 +357,17 @@ app.use("/syndicate/transaction_status", async (c) => {
 });
 devtools(app, { serveStatic });
 
-// litNodeClient
-//   .connect()
-//   .then(() => {
-//     serve({
-//       fetch: app.fetch,
-//       port: Number(port),
-//     });
+litNodeClient
+  .connect()
+  .then(() => {
+    serve({
+      fetch: app.fetch,
+      port: Number(port),
+    });
 
-//     console.log(`Server listening on ${port}`);
-//   })
-//   .catch((e) => {
-//     console.log(e);
-//     process.exit(1);
-//   });
-
-serve({
-  fetch: app.fetch,
-  port: Number(port),
-});
-
-console.log(`Server listening on ${port}`);
+    console.log(`Server listening on ${port}`);
+  })
+  .catch((e) => {
+    console.log(e);
+    process.exit(1);
+  });
