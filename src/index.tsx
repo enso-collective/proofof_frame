@@ -6,7 +6,7 @@ import axios from "axios";
 import { FarcasterResponse, TransactionStatusChangeEvent } from "./interface";
 import { errorScreen, infoScreen } from "./middleware";
 import dotenv from "dotenv";
-import { mintProcess, Payload } from "./mint";
+import { getEthAddress, mintProcess, Payload } from "./mint";
 import { db } from "./utils/db";
 import { provider } from "./utils/eas";
 import crypto from "crypto";
@@ -25,8 +25,6 @@ app.frame("/", async (c) => {
 
     switch (status) {
       case "response": {
-        console.log(frameData?.address);
-        console.log(frameData?.castId);
         if (!inputText) {
           throw new Error("Please enter text first");
         }
@@ -294,17 +292,23 @@ app.frame("/validations/:validationId", async (c) => {
     );
   }
 });
-app.transaction("/transactions/decrypt/:transactionId", (c) => {
+app.transaction("/transactions/decrypt/:transactionId", async (c) => {
+  const ethAddress = await getEthAddress(
+    String(c?.frameData?.castId?.fid || "")
+  );
   return c.send({
     chainId: "eip155:8453",
-    to: (process.env.RECIPIENT || ``) as any,
+    to: ethAddress as any,
     value: parseEther("0.00088"),
   });
 });
-app.transaction("/transactions/:transactionId", (c) => {
+app.transaction("/transactions/:transactionId", async (c) => {
+  const ethAddress = await getEthAddress(
+    String(c?.frameData?.castId?.fid || "")
+  );
   return c.send({
     chainId: "eip155:8453",
-    to: (process.env.RECIPIENT || ``) as any,
+    to: ethAddress as any,
     value: parseEther("0.00088"),
   });
 });

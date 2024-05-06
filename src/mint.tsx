@@ -114,7 +114,26 @@ mintProcess.on("START_MINTING", async (data) => {
     console.log(error);
   }
 });
-
+export async function getEthAddress(fid: string) {
+  const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`;
+  const headers = {
+    accept: "application/json",
+    api_key: process.env.NEYNAR_API_KEY,
+  };
+  const {
+    data: { users },
+  } = await axios.get<Payload>(url, { headers });
+  const [user] = users;
+  if (!user) {
+    throw new Error("Invalid user");
+  }
+  const addresses = user?.verified_addresses?.eth_addresses;
+  if (!Array.isArray(addresses) || !addresses[0]) {
+    throw new Error("Invlaid eth address");
+  }
+  const [ethAddress] = addresses;
+  return ethAddress;
+}
 mintProcess.on("START_VALIDATING", async (data) => {
   const mintPayload = JSON.parse(data) as MintPayload;
   let withError = true;
