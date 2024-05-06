@@ -33,7 +33,7 @@ app.frame("/", async (c) => {
           let { data: attestation } = await db
             .from("attestations")
             .select()
-            .eq("cipher", inputText.trim())
+            .textSearch("cipher", `'${inputText.trim()}'`)
             .limit(1)
             .single();
           if (!attestation) {
