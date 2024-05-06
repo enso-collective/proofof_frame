@@ -22,8 +22,11 @@ app.use("/*", serveStatic({ root: "./public" }));
 app.frame("/", async (c) => {
   try {
     const { status, inputText, frameData } = c;
+
     switch (status) {
       case "response": {
+        console.log(frameData?.address);
+        console.log(frameData?.castId);
         if (!inputText) {
           throw new Error("Please enter text first");
         }
