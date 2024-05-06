@@ -32,7 +32,7 @@ app.frame("/", async (c) => {
           let { data: attestation } = await db
             .from("attestations")
             .select()
-            .like("name", `%${inputText}%`)
+            .like("cipher", `%${inputText}%`)
             .limit(1)
             .single();
           if (!attestation) {
