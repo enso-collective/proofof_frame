@@ -29,11 +29,10 @@ app.frame("/", async (c) => {
         }
         console.log(frameData?.buttonIndex);
         if (frameData?.buttonIndex == 1) {
-          console.log(inputText);
           let { data: attestation } = await db
             .from("attestations")
             .select()
-            .textSearch("cipher", `'${inputText.trim()}'`)
+            .like("name", `%${inputText}%`)
             .limit(1)
             .single();
           if (!attestation) {
