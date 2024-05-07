@@ -389,8 +389,6 @@ app.hono.get("/notes", async (c) => {
     action: {
       type: "post",
     },
-    type: "frame",
-    frameUrl: "https://proofof-frame-1.onrender.com/notes-frame",
   });
 });
 app.hono.post("/notes", async (c) => {
@@ -400,6 +398,7 @@ app.hono.post("/notes", async (c) => {
   });
 });
 app.frame("/notes-frame", async (c) => {
+  console.log(JSON.stringify(c, null, 2));
   try {
     return c.res(
       infoScreen(`Please drop your review`, [
