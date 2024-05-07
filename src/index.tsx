@@ -40,7 +40,13 @@ app.frame("/", async (c) => {
             throw new Error("Invalid payload");
           }
           if (String(attestation.owner) != String(c.frameData?.castId.fid)) {
-            throw new Error("Unauthorized");
+            const { username } = await getEthAddress(attestation.owner);
+            return c.res(
+              infoScreen(
+                `This text was encrypted on ${username}'s Frame, and must be decrypted there`,
+                [<Button.Reset>Reset</Button.Reset>]
+              )
+            );
           }
           const buttons = [
             <Button.Transaction
@@ -297,7 +303,7 @@ app.frame("/validations/:validationId", async (c) => {
   }
 });
 app.transaction("/transactions/decrypt/:transactionId", async (c) => {
-  const ethAddress = await getEthAddress(
+  const { ethAddress } = await getEthAddress(
     String(c?.frameData?.castId?.fid || "")
   );
   return c.send({
@@ -307,7 +313,7 @@ app.transaction("/transactions/decrypt/:transactionId", async (c) => {
   });
 });
 app.transaction("/transactions/:transactionId", async (c) => {
-  const ethAddress = await getEthAddress(
+  const { ethAddress } = await getEthAddress(
     String(c?.frameData?.castId?.fid || "")
   );
   return c.send({

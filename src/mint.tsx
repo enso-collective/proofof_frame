@@ -101,7 +101,6 @@ mintProcess.on("START_MINTING", async (data) => {
         },
       }
     );
-    console.log({ transactionResponse });
 
     await db.from("attestations").insert({
       job_id: mintPayload.jobId,
@@ -135,7 +134,8 @@ export async function getEthAddress(fid: string) {
     throw new Error("Invlaid eth address");
   }
   const [ethAddress] = addresses;
-  return ethAddress;
+  const username = user.username;
+  return { ethAddress, username };
 }
 mintProcess.on("START_VALIDATING", async (data) => {
   const mintPayload = JSON.parse(data) as MintPayload;
