@@ -398,7 +398,7 @@ app.hono.post("/notes", async (c) => {
   });
 });
 app.frame("/notes-frame", async (c) => {
-  console.log(JSON.stringify(c, null, 2));
+  console.log(c);
   try {
     return c.res(
       infoScreen(`Please drop your review`, [
