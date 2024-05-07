@@ -397,24 +397,21 @@ app.hono.post("/notes", async (c) => {
     frameUrl: "https://proofof-frame-1.onrender.com/notes-frame",
   });
 });
-app.frame("/notes-frame", async (c) => {
+app.frame("/notes-frame", (c) => {
+  return c.res({
+    ...infoScreen(`Summary of cast sentiments`, [<Button>Proceed</Button>]),
+    action: `/notes-frame-start`,
+  });
+});
+app.frame("/notes-frame-start", (c) => {
   console.log(c);
-  try {
-    return c.res(
-      infoScreen(`Please drop your review`, [
-        <TextInput placeholder="Leave comment..." />,
-        <Button>Endorse</Button>,
-        <Button>Warning</Button>,
-      ])
-    );
-  } catch (error: any) {
-    console.log(error);
-    return c.res(
-      errorScreen(
-        error.message.includes("reply") ? error.message : "Something went wrong"
-      )
-    );
-  }
+  return c.res({
+    ...infoScreen(`Leave your review`, [
+      <TextInput placeholder="Leave comment..." />,
+      <Button>Endorse</Button>,
+      <Button>Warning</Button>,
+    ]),
+  });
 });
 
 app.use("/syndicate/transaction_status", async (c) => {
