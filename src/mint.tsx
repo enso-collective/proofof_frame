@@ -101,6 +101,7 @@ mintProcess.on("START_MINTING", async (data) => {
         },
       }
     );
+    console.log({ transactionResponse });
 
     await db.from("attestations").insert({
       job_id: mintPayload.jobId,
