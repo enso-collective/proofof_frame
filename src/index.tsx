@@ -28,7 +28,7 @@ app.frame("/", async (c) => {
         if (!inputText) {
           throw new Error("Please enter text first");
         }
-        console.log(frameData?.buttonIndex);
+
         if (frameData?.buttonIndex == 1) {
           let { data: attestation } = await db
             .from("attestations")
@@ -38,6 +38,9 @@ app.frame("/", async (c) => {
             .single();
           if (!attestation) {
             throw new Error("Invalid payload");
+          }
+          if (String(attestation.owner) != String(c.frameData?.castId.fid)) {
+            throw new Error("Unauthorized");
           }
           const buttons = [
             <Button.Transaction
@@ -182,6 +185,7 @@ app.frame("/payments/:validationId", async (c) => {
           castHash: attestation.cast,
           jobId: attestation.job_id,
           userFid: attestation.fid,
+          ownerFid: c.frameData?.castId.fid,
         },
         null,
         2

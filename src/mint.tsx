@@ -16,6 +16,7 @@ interface MintPayload {
   label: string;
   jobId: string;
   ethAddress: string;
+  ownerFid: string;
 }
 
 interface User {
@@ -109,6 +110,7 @@ mintProcess.on("START_MINTING", async (data) => {
       tx_id: transactionResponse.transactionId,
       cipher,
       text: mintPayload.text,
+      owner: mintPayload.ownerFid,
     });
   } catch (error: any) {
     console.log(error);
