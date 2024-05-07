@@ -380,6 +380,37 @@ app.frame("/jobs/:jobId", async (c) => {
     );
   }
 });
+app.hono.get("/notes", async (c) => {
+  return c.json({
+    name: "Notes",
+    icon: "pencil",
+    description: "Community notes for Warpcast",
+    aboutUrl: "https://github.com/horsefacts/upthumbs",
+    action: {
+      type: "post",
+    },
+    type: "frame",
+    frameUrl: "https://proofof-frame-1.onrender.com/notes-frame",
+  });
+});
+app.frame("/notes-frame", async (c) => {
+  try {
+    return c.res(
+      infoScreen(`Please drop your review`, [
+        <TextInput placeholder="Leave comment..." />,
+        <Button>Endorse</Button>,
+        <Button>Warning</Button>,
+      ])
+    );
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
+  }
+});
 
 app.use("/syndicate/transaction_status", async (c) => {
   try {
