@@ -393,6 +393,12 @@ app.hono.get("/notes", async (c) => {
     frameUrl: "https://proofof-frame-1.onrender.com/notes-frame",
   });
 });
+app.hono.post("/notes", async (c) => {
+  return c.json({
+    type: "frame",
+    frameUrl: "https://proofof-frame-1.onrender.com/notes-frame",
+  });
+});
 app.frame("/notes-frame", async (c) => {
   try {
     return c.res(
