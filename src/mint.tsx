@@ -220,6 +220,7 @@ mintProcess.on("START_MINTING_NOTES", async (data) => {
       "https://us-central1-enso-collective.cloudfunctions.net/internalMintNotesWebhook",
       {
         ...mintPayload,
+        hash: null,
       },
 
       {
