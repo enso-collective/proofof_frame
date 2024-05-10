@@ -404,16 +404,89 @@ app.frame("/notes-frame", (c) => {
   });
 });
 app.frame("/notes-frame-start", (c) => {
-  console.log(c);
   return c.res({
     ...infoScreen(`Leave your review`, [
       <TextInput placeholder="Leave comment..." />,
       <Button>Endorse</Button>,
       <Button>Warning</Button>,
     ]),
+    action: `/notes-frame-mint`,
   });
 });
+app.frame("/notes-frame-mint", async (c) => {
+  const { username, ethAddress } = await getEthAddress(
+    String(c.frameData?.fid)
+  );
+  const payload = {
+    username,
+    attestWallet: ethAddress,
+    noteText: c.frameData?.inputText,
+    sentiment: c.frameData?.buttonIndex === 1 ? "Endorse" : "Warning",
+    key: process.env.ENSO_KEY!,
+    postUrl: c.frameData?.url,
+    fid: c.frameData?.fid,
+    hash: c.frameData?.castId.hash,
+  };
+  mintProcess.emit("START_MINTING_NOTES", JSON.stringify(payload, null, 2));
 
+  return c.res({
+    ...infoScreen(`Processing your review...`, [<Button>Refresh</Button>]),
+    action: `/notes-frame-final`,
+  });
+});
+app.frame("/notes-frame-final", async (c) => {
+  try {
+    let { data: attestation } = await db
+      .from("notes")
+      .select()
+      .eq("fid", c.frameData?.fid)
+      .eq("hash", c.frameData?.castId.hash)
+      .limit(1)
+      .single();
+    if (attestation) {
+      let { data: transaction } = await db
+        .from("transactions")
+        .select()
+        .eq("tx_id", attestation.tx_id)
+        .limit(1)
+        .single();
+
+      if (attestation.tx && transaction) {
+        return c.res(
+          infoScreen(
+            `Review validated! Your Proof has been created onchain on Degen. \n\n
+          Your Proof has earned you $degen!`,
+            [
+              <Button.Reset>Reset Frame</Button.Reset>,
+              <Button.Link
+                href={`https://www.onceupon.xyz/${transaction.hash}`}
+              >
+                View $degen
+              </Button.Link>,
+              <Button.Link href={attestation.tx}>View EAS Proof</Button.Link>,
+            ]
+          )
+        );
+      }
+    }
+
+    return {
+      ...c.res(
+        infoScreen("\n\n\nStill loading...", [
+          <Button value="REFRESH">Check status</Button>,
+        ])
+      ),
+      action: `/notes-frame-final`,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
+  }
+});
 app.use("/syndicate/transaction_status", async (c) => {
   try {
     const body = (await c.req.json()) as TransactionStatusChangeEvent;

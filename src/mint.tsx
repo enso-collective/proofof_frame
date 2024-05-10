@@ -135,7 +135,7 @@ export async function getEthAddress(fid: string) {
   }
   const [ethAddress] = addresses;
   const username = user.username;
-  return { ethAddress, username };
+  return { ethAddress, username, user };
 }
 mintProcess.on("START_VALIDATING", async (data) => {
   const mintPayload = JSON.parse(data) as MintPayload;
@@ -199,5 +199,61 @@ mintProcess.on("START_VALIDATING", async (data) => {
     } catch (error) {
       console.log(error);
     }
+  }
+});
+
+interface MintData {
+  username: string;
+  attestWallet: string;
+  noteText: string | undefined;
+  sentiment: "Endorse" | "Warning";
+  key: string;
+  postUrl: string | undefined;
+  fid: string;
+  hash: string;
+}
+
+mintProcess.on("START_MINTING_NOTES", async (data) => {
+  const mintPayload = JSON.parse(data) as MintData;
+  try {
+    const { data: mintResponse } = await axios.post(
+      "https://us-central1-enso-collective.cloudfunctions.net/internalMintNotesWebhook",
+      {
+        ...mintPayload,
+      },
+
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const { data: transactionResponse } = await axios.post(
+      "https://api.syndicate.io/transact/sendTransaction",
+      {
+        projectId: process.env.SYNDICATE_PROJECT_ID!,
+        contractAddress: "0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed",
+        chainId: 8453,
+        functionSignature: "transfer(address account, uint256 value)",
+        args: {
+          account: mintPayload.attestWallet,
+          value: ethers.parseEther("10").toString(),
+        },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.SYNDICATE_API_KEY!}`,
+        },
+      }
+    );
+
+    await db.from("notes").insert({
+      ...mintPayload,
+      tx: mintResponse.url,
+      tx_id: transactionResponse.transactionId,
+    });
+  } catch (error: any) {
+    console.log(error);
   }
 });
