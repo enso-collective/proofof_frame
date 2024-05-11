@@ -382,9 +382,10 @@ app.frame("/jobs/:jobId", async (c) => {
 });
 app.hono.get("/notes", async (c) => {
   return c.json({
-    name: "Notes",
+    name: "Proof:of Community Notes",
     icon: "pencil",
-    description: "Community notes for Warpcast",
+    description:
+      "View sentiment on any Cast, and for Power Users attest endorsement or warning, with a $degen reward",
     aboutUrl: "https://github.com/horsefacts/upthumbs",
     action: {
       type: "post",
