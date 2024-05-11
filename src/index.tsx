@@ -398,68 +398,95 @@ app.hono.post("/notes", async (c) => {
   });
 });
 app.frame("/notes-frame", async (c) => {
-  let { data: attestations } = await db
-    .from("notes")
-    .select()
-    .eq("hash", c.frameData?.castId.hash);
-  let displayText = `Endorsements: 0 \n\n Warnings: 0`;
-  if (attestations) {
-    let endorsements = attestations.filter(
-      (t: any) => t.sentiment === "Endorse"
-    );
-    let warnings = attestations.filter((t: any) => t.sentiment === "Warning");
-    displayText = `Endorsements: ${endorsements.length} \n\n Warnings: ${warnings.length}`;
-  }
+  try {
+    let { data: attestations } = await db
+      .from("notes")
+      .select()
+      .eq("hash", c.frameData?.castId.hash);
+    let displayText = `Endorsements: 0 \n\n Warnings: 0`;
+    if (attestations) {
+      let endorsements = attestations.filter(
+        (t: any) => t.sentiment === "Endorse"
+      );
+      let warnings = attestations.filter((t: any) => t.sentiment === "Warning");
+      displayText = `Endorsements: ${endorsements.length} \n\n Warnings: ${warnings.length}`;
+    }
 
-  return c.res({
-    ...infoScreen(displayText, [<Button>Proceed</Button>]),
-    action: `/notes-frame-start`,
-  });
+    return c.res({
+      ...infoScreen(displayText, [<Button>Proceed</Button>]),
+      action: `/notes-frame-start`,
+    });
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
+  }
 });
 app.frame("/notes-frame-start", async (c) => {
-  let { data: attestation } = await db
-    .from("notes")
-    .select()
-    .eq("fid", c.frameData?.fid)
-    .eq("hash", c.frameData?.castId.hash)
-    .limit(1)
-    .single();
-  if (attestation) {
+  try {
+    let { data: attestation } = await db
+      .from("notes")
+      .select()
+      .eq("fid", c.frameData?.fid)
+      .eq("hash", c.frameData?.castId.hash)
+      .limit(1)
+      .single();
+    if (attestation) {
+      return c.res({
+        ...infoScreen(`You have already reviewd this cast`, [
+          <Button.Reset>View results</Button.Reset>,
+        ]),
+      });
+    }
     return c.res({
-      ...infoScreen(`You have already reviewd this cast`, [
-        <Button.Reset>View results</Button.Reset>,
+      ...infoScreen(`Leave your review`, [
+        <TextInput placeholder="Leave comment..." />,
+        <Button>Endorse</Button>,
+        <Button>Warning</Button>,
       ]),
+      action: `/notes-frame-mint`,
     });
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
   }
-  return c.res({
-    ...infoScreen(`Leave your review`, [
-      <TextInput placeholder="Leave comment..." />,
-      <Button>Endorse</Button>,
-      <Button>Warning</Button>,
-    ]),
-    action: `/notes-frame-mint`,
-  });
 });
 app.frame("/notes-frame-mint", async (c) => {
-  const { username, ethAddress } = await getEthAddress(
-    String(c.frameData?.fid)
-  );
-  const payload = {
-    username,
-    attestWallet: ethAddress,
-    noteText: c.frameData?.inputText,
-    sentiment: c.frameData?.buttonIndex === 1 ? "Endorse" : "Warning",
-    key: process.env.ENSO_KEY!,
-    postUrl: c.frameData?.url,
-    fid: c.frameData?.fid,
-    hash: c.frameData?.castId.hash,
-  };
-  mintProcess.emit("START_MINTING_NOTES", JSON.stringify(payload, null, 2));
+  try {
+    const { username, ethAddress } = await getEthAddress(
+      String(c.frameData?.fid)
+    );
+    const payload = {
+      username,
+      attestWallet: ethAddress,
+      noteText: c.frameData?.inputText,
+      sentiment: c.frameData?.buttonIndex === 1 ? "Endorse" : "Warning",
+      key: process.env.ENSO_KEY!,
+      postUrl: c.frameData?.url,
+      fid: c.frameData?.fid,
+      hash: c.frameData?.castId.hash,
+    };
+    mintProcess.emit("START_MINTING_NOTES", JSON.stringify(payload, null, 2));
 
-  return c.res({
-    ...infoScreen(`Processing your review...`, [<Button>Refresh</Button>]),
-    action: `/notes-frame-final`,
-  });
+    return c.res({
+      ...infoScreen(`Processing your review...`, [<Button>Refresh</Button>]),
+      action: `/notes-frame-final`,
+    });
+  } catch (error: any) {
+    console.log(error);
+    return c.res(
+      errorScreen(
+        error.message.includes("reply") ? error.message : "Something went wrong"
+      )
+    );
+  }
 });
 app.frame("/notes-frame-final", async (c) => {
   try {
