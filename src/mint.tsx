@@ -219,8 +219,12 @@ mintProcess.on("START_MINTING_NOTES", async (data) => {
     const { data: mintResponse } = await axios.post(
       "https://us-central1-enso-collective.cloudfunctions.net/internalMintNotesWebhook",
       {
-        ...mintPayload,
-        hash: null,
+        key: mintPayload.key,
+        username: mintPayload.username,
+        noteText: mintPayload.noteText,
+        postUrl: mintPayload.postUrl,
+        sentiment: mintPayload.sentiment,
+        attestWallet: mintPayload.attestWallet,
       },
 
       {
