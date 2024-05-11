@@ -3,6 +3,7 @@ import axios from "axios";
 import { db } from "./utils/db";
 import { ethers } from "ethers";
 import { litEncrypt } from "./utils/lit";
+import { Cast, FarcasterResponse } from "./interface";
 
 const degenProvider = new ethers.JsonRpcProvider(
   "https://rpc.degen.tips",
@@ -216,13 +217,27 @@ interface MintData {
 mintProcess.on("START_MINTING_NOTES", async (data) => {
   const mintPayload = JSON.parse(data) as MintData;
   try {
+    const {
+      data: { cast },
+    } = await axios.get<{ cast: Cast }>(
+      `https://api.neynar.com/v2/farcaster/cast?identifier=${mintPayload.hash}&type=hash`,
+      {
+        headers: {
+          accept: "application/json",
+          api_key: process.env.NEYNAR_API_KEY,
+        },
+      }
+    );
+
     const { data: mintResponse } = await axios.post(
       "https://us-central1-enso-collective.cloudfunctions.net/internalMintNotesWebhook",
       {
         key: mintPayload.key,
         username: mintPayload.username,
         noteText: mintPayload.noteText,
-        postUrl: mintPayload.postUrl,
+        postUrl: `https://warpcast.com/${
+          cast.author.username
+        }/${mintPayload.hash.slice(0, 10)}`,
         sentiment: mintPayload.sentiment,
         wallet: mintPayload.attestWallet,
       },
