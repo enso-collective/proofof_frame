@@ -224,7 +224,7 @@ mintProcess.on("START_MINTING_NOTES", async (data) => {
         noteText: mintPayload.noteText,
         postUrl: mintPayload.postUrl,
         sentiment: mintPayload.sentiment,
-        attestWallet: mintPayload.attestWallet,
+        wallet: mintPayload.attestWallet,
       },
 
       {
