@@ -460,9 +460,16 @@ app.frame("/notes-frame-start", async (c) => {
 });
 app.frame("/notes-frame-mint", async (c) => {
   try {
-    const { username, ethAddress } = await getEthAddress(
+    const { username, ethAddress, user } = await getEthAddress(
       String(c.frameData?.fid)
     );
+    if (!user.power_badge) {
+      return c.res({
+        ...infoScreen(`Only accounts with a power badge can review.`, [
+          <Button.Reset>Cancel</Button.Reset>,
+        ]),
+      });
+    }
     const payload = {
       username,
       attestWallet: ethAddress,
