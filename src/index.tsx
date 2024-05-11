@@ -397,13 +397,40 @@ app.hono.post("/notes", async (c) => {
     frameUrl: "https://proofof-frame-1.onrender.com/notes-frame",
   });
 });
-app.frame("/notes-frame", (c) => {
+app.frame("/notes-frame", async (c) => {
+  let { data: attestations } = await db
+    .from("notes")
+    .select()
+    .eq("hash", c.frameData?.castId.hash);
+  let displayText = `Endorsements: 0 \n\n Warnings: 0`;
+  if (attestations) {
+    let endorsements = attestations.filter(
+      (t: any) => t.sentiment === "Endorse"
+    );
+    let warnings = attestations.filter((t: any) => t.sentiment === "Warning");
+    displayText = `Endorsements: ${endorsements.length} \n\n Warnings: ${warnings.length}`;
+  }
+
   return c.res({
-    ...infoScreen(`Summary of cast sentiments`, [<Button>Proceed</Button>]),
+    ...infoScreen(displayText, [<Button>Proceed</Button>]),
     action: `/notes-frame-start`,
   });
 });
-app.frame("/notes-frame-start", (c) => {
+app.frame("/notes-frame-start", async (c) => {
+  let { data: attestation } = await db
+    .from("notes")
+    .select()
+    .eq("fid", c.frameData?.fid)
+    .eq("hash", c.frameData?.castId.hash)
+    .limit(1)
+    .single();
+  if (attestation) {
+    return c.res({
+      ...infoScreen(`You have already reviewd this cast`, [
+        <Button.Reset>View results</Button.Reset>,
+      ]),
+    });
+  }
   return c.res({
     ...infoScreen(`Leave your review`, [
       <TextInput placeholder="Leave comment..." />,
