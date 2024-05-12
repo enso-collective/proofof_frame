@@ -414,7 +414,9 @@ app.frame("/notes-frame", async (c) => {
     }
 
     return c.res({
-      ...infoScreen(displayText, [<Button>Proceed</Button>]),
+      ...infoScreen(displayText, [
+        <Button>Power Users: Add Attestation</Button>,
+      ]),
       action: `/notes-frame-start`,
     });
   } catch (error: any) {
